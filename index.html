@@ -1,0 +1,2544 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#f3f5f7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0f1419" media="(prefers-color-scheme: dark)">
+  <title>Allenamento Triathlon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#f3f5f7; --surface:#ffffff; --surface-alt:#f7f9fb; --border:#dfe5ea; --border-strong:#c6d1da;
+      --text:#182129; --muted:#5c6975; --primary:#0f6e8c; --primary-soft:rgba(15,110,140,.12); --primary-text:#fff;
+      --corsa:#d9532b; --bici:#1a8f7a; --nuoto:#2f6fd0; --forza:#5a4fa0; --riposo:#8a96a0; --ok:#2e8b4a;
+      --warn:#d99018; --danger:#c8364a;
+      --z1:#7fa7c4; --z2:#3c9a6b; --z3:#d9a62b; --z4:#e0702f; --z5:#c8364a;
+      --bg-ok:rgba(46,139,74,.13); --bg-warn:rgba(217,166,43,.17); --bg-danger:rgba(200,54,74,.14);
+      --r:14px; --top:54px;
+      --st:env(safe-area-inset-top,0px); --sb:env(safe-area-inset-bottom,0px);
+      --sl:env(safe-area-inset-left,0px); --sr:env(safe-area-inset-right,0px);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:#0f1419; --surface:#172028; --surface-alt:#1f2a34; --border:#2b3844; --border-strong:#3c4d5d;
+        --text:#eef3f7; --muted:#95a6b5; --primary:#2a9ec4; --primary-soft:rgba(42,158,196,.2);
+        --bg-ok:rgba(46,139,74,.22); --bg-warn:rgba(217,166,43,.22); --bg-danger:rgba(200,54,74,.24);
+      }
+    }
+    *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html{font-size:16px;-webkit-text-size-adjust:100%}
+    body{margin:0;font-family:'Barlow',-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.4;
+      padding:calc(var(--top) + var(--st)) var(--sr) calc(28px + var(--sb)) var(--sl);overflow-x:hidden}
+    h1,h2,h3,h4,.ft{font-family:'Barlow Condensed',sans-serif;margin:0;line-height:1.15;letter-spacing:.01em}
+    a{color:var(--primary);text-decoration:none}
+    button,input,select,textarea{font-family:inherit;font-size:16px;color:var(--text)}
+
+    /* Topbar & Drawer */
+    .topbar{position:fixed;top:0;left:0;right:0;height:calc(var(--top) + var(--st));padding:var(--st) calc(12px + var(--sr)) 0 calc(8px + var(--sl));
+      background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;z-index:100}
+    .menu-btn{width:44px;height:44px;border:none;background:none;border-radius:10px;font-size:22px;cursor:pointer;display:grid;place-items:center}
+    .menu-btn:active{background:var(--surface-alt)}
+    .top-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .backdrop{position:fixed;inset:0;background:rgba(8,14,20,.55);z-index:200;opacity:0;pointer-events:none;transition:opacity .2s}
+    .backdrop.open{opacity:1;pointer-events:auto}
+    .drawer{position:fixed;top:0;bottom:0;left:0;width:min(285px,82vw);background:var(--surface);z-index:210;transform:translateX(-100%);
+      transition:transform .22s cubic-bezier(.22,1,.36,1);display:flex;flex-direction:column;
+      padding:calc(14px + var(--st)) 0 calc(14px + var(--sb)) var(--sl);box-shadow:4px 0 24px rgba(0,0,0,.2)}
+    .drawer.open{transform:translateX(0)}
+    .drawer-head{padding:6px 16px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .drawer-head h2{font-size:23px;color:var(--primary)}
+    .drawer-nav{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:3px}
+    .nav-item{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:11px;border:none;background:none;
+      font-weight:600;font-size:16px;text-align:left;cursor:pointer;min-height:46px;width:100%}
+    .nav-item:active{background:var(--surface-alt)}
+    .nav-item.active{background:var(--primary-soft);color:var(--primary)}
+    .nav-item svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+    .drawer-foot{padding:10px 12px 0;border-top:1px solid var(--border);display:flex;gap:8px}
+
+    /* Container & Cards */
+    .wrap{max-width:640px;margin:0 auto;padding:12px;display:flex;flex-direction:column;gap:11px}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px}
+    .card-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
+    .card-hd h2,.card-hd h3{font-size:20px;font-weight:700}
+
+    /* Collapsible */
+    .col-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+    .col-btn{width:100%;border:none;background:none;padding:12px 13px;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;cursor:pointer;min-height:48px}
+    .col-btn:active{background:var(--surface-alt)}
+    .col-meta{min-width:0;flex:1}
+    .col-t{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:700}
+    .col-s{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+    .col-arr{font-size:15px;color:var(--muted);transition:transform .2s;flex-shrink:0}
+    .col-card.open .col-arr{transform:rotate(180deg)}
+    .col-body{display:none;padding:11px 13px 13px;border-top:1px solid var(--border)}
+    .col-card.open .col-body{display:block}
+
+    /* Buttons, Chips, Alerts */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:8px 14px;border-radius:10px;
+      border:1px solid var(--border-strong);background:var(--surface-alt);font-weight:600;font-size:15px;cursor:pointer}
+    .btn:active{opacity:.78}
+    .btn-p{background:var(--primary);border-color:var(--primary);color:var(--primary-text)}
+    .btn-d{background:var(--bg-danger);border-color:var(--danger);color:var(--danger)}
+    .btn-sm{min-height:34px;padding:5px 10px;font-size:13px;border-radius:8px}
+    .btn-blk{width:100%}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .row-sb{display:flex;gap:8px;align-items:center;justify-content:space-between}
+    .chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:12px;font-weight:600;
+      background:var(--surface-alt);border:1px solid var(--border);color:var(--muted);white-space:nowrap}
+    .chip-p{background:var(--primary-soft);border-color:transparent;color:var(--primary)}
+    .chip-ok{background:var(--bg-ok);border-color:transparent;color:var(--ok)}
+    .chip-w{background:var(--bg-warn);border-color:transparent;color:#996605}
+    .chip-d{background:var(--bg-danger);border-color:transparent;color:var(--danger)}
+    @media(prefers-color-scheme:dark){.chip-w{color:#f0c458}}
+    .alert{padding:10px 12px;border-radius:10px;font-size:14px;border-left:4px solid var(--primary);background:var(--primary-soft)}
+    .alert-ok{background:var(--bg-ok);border-left-color:var(--ok)}
+    .alert-w{background:var(--bg-warn);border-left-color:var(--warn)}
+    .alert-d{background:var(--bg-danger);border-left-color:var(--danger)}
+    .alert b{display:block;margin-bottom:2px}
+    .muted{color:var(--muted);font-size:13px}
+    .sm{font-size:13px}
+
+    /* Forms */
+    .g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+    .g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+    .fld{display:flex;flex-direction:column;gap:3px}
+    .fld.full{grid-column:1/-1}
+    .fld label{font-size:12px;font-weight:600;color:var(--muted)}
+    .fld input,.fld select,.fld textarea{width:100%;min-height:40px;padding:7px 9px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);outline:none}
+    .fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-soft)}
+    .fld textarea{min-height:74px;resize:vertical}
+    .chk{display:flex;align-items:center;gap:8px;min-height:38px;cursor:pointer;font-weight:600;font-size:14px}
+    .chk input{width:20px;height:20px;accent-color:var(--primary);flex-shrink:0}
+    .alg-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+    .alg-it{display:flex;align-items:center;gap:6px;padding:6px 8px;border:1px solid var(--border);border-radius:8px;background:var(--surface-alt);font-size:13px;cursor:pointer}
+    .alg-it input{width:17px;height:17px;accent-color:var(--primary)}
+
+    /* KPIs, Progress, Tables */
+    .kpi{background:var(--surface-alt);border:1px solid var(--border);border-radius:10px;padding:9px 6px;text-align:center}
+    .kpi-v{font-family:'Barlow Condensed',sans-serif;font-size:23px;font-weight:700;line-height:1.1}
+    .kpi-l{font-size:11px;color:var(--muted);margin-top:2px}
+    .pbar{margin-bottom:7px}.pbar:last-child{margin-bottom:0}
+    .pbar-h{display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:3px}
+    .pbar-t{height:8px;border-radius:99px;background:var(--surface-alt);border:1px solid var(--border);overflow:hidden}
+    .pbar-f{height:100%;border-radius:99px;background:var(--primary)}
+    .tbl{width:100%;border-collapse:collapse;font-size:13px}
+    .tbl th,.tbl td{padding:6px 5px;border-bottom:1px solid var(--border);text-align:left}
+    .tbl th{color:var(--muted);font-size:12px;font-weight:600}
+    .tbl .r{text-align:right}
+    .tbl tr:last-child td{border-bottom:none}
+
+    /* Specific widgets */
+    .cd-banner{background:linear-gradient(135deg,var(--primary),#0a4e64);color:#fff;border-radius:var(--r);padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .cd-t{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700}
+    .sem-wrap{display:flex;gap:11px;align-items:flex-start}
+    .sem-dot{width:18px;height:18px;border-radius:50%;margin-top:3px;flex-shrink:0}
+    .sem-g{background:var(--ok);box-shadow:0 0 0 4px var(--bg-ok)}
+    .sem-y{background:var(--warn);box-shadow:0 0 0 4px var(--bg-warn)}
+    .sem-r{background:var(--danger);box-shadow:0 0 0 4px var(--bg-danger)}
+
+    .day-card{background:var(--surface);border:1px solid var(--border);border-left:5px solid var(--riposo);border-radius:var(--r);padding:11px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px}
+    .day-card:active{background:var(--surface-alt)}
+    .day-card.corsa,.day-card.brick{border-left-color:var(--corsa)}
+    .day-card.bici{border-left-color:var(--bici)}
+    .day-card.nuoto{border-left-color:var(--nuoto)}
+    .day-card.forza{border-left-color:var(--forza)}
+    .day-card.riposo{border-left-color:var(--riposo)}
+    .day-title{font-weight:700;font-size:15px}
+    .day-sub{font-size:13px;color:var(--muted);margin-top:2px}
+
+    .macro-bar{height:14px;border-radius:99px;overflow:hidden;display:flex;background:var(--surface-alt);margin:8px 0}
+    .mb-c{background:var(--primary)} .mb-p{background:var(--corsa)} .mb-f{background:var(--z3)}
+    .meal-card{border:1px solid var(--border);border-radius:12px;padding:11px 12px;background:var(--surface-alt);margin-bottom:9px}
+    .meal-card:last-child{margin-bottom:0}
+    .ing-list{list-style:none;padding:0;margin:6px 0;font-size:14px}
+    .ing-list li{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed var(--border)}
+    .ing-list li:last-child{border-bottom:none}
+
+    .filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+    .f-chip{padding:6px 11px;border-radius:99px;border:1px solid var(--border-strong);background:var(--surface);font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer}
+    .f-chip.active{background:var(--primary);border-color:var(--primary);color:#fff}
+
+    .zone-row{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:9px;margin-bottom:5px;background:var(--surface-alt);border-left:5px solid var(--z1)}
+    .avatar{width:52px;height:52px;border-radius:50%;background:var(--primary);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700;display:grid;place-items:center;flex-shrink:0}
+    .shoe-img{width:58px;height:58px;border-radius:10px;object-fit:cover;background:var(--surface-alt);border:1px solid var(--border);flex-shrink:0}
+    .svg-box{width:100%;overflow:hidden}
+    .svg-box svg{width:100%;height:auto;display:block}
+    .steps-ol{margin:6px 0;padding-left:20px;font-size:14px}
+    .steps-ol ul{margin:3px 0;padding-left:18px}
+
+    /* Modal & Toast */
+    .modal-bg{position:fixed;inset:0;background:rgba(8,14,20,.58);z-index:300;display:none;align-items:flex-end;justify-content:center}
+    .modal-bg.open{display:flex}
+    .modal{width:100%;max-width:640px;max-height:92vh;background:var(--surface);border-radius:18px 18px 0 0;
+      padding:14px 14px calc(18px + var(--sb));overflow-y:auto;box-shadow:0 -4px 28px rgba(0,0,0,.25)}
+    .modal-hd{display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid var(--border);margin-bottom:11px;position:sticky;top:-14px;background:var(--surface);padding-top:4px;z-index:2}
+    .toast{position:fixed;left:50%;bottom:calc(18px + var(--sb));transform:translateX(-50%) translateY(120px);background:#182129;color:#fff;
+      padding:10px 16px;border-radius:99px;font-size:14px;font-weight:600;z-index:400;transition:transform .22s;pointer-events:none;max-width:90vw;text-align:center}
+    .toast.show{transform:translateX(-50%) translateY(0)}
+    .mt8{margin-top:8px}.mt12{margin-top:12px}.mb8{margin-bottom:8px}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <button class="menu-btn" id="openDrawerBtn" aria-label="Apri menu">☰</button>
+    <div class="top-title" id="topbarTitle">Settimana</div>
+  </header>
+
+  <div class="backdrop" id="drawerBackdrop"></div>
+  <aside class="drawer" id="drawer" aria-label="Navigazione">
+    <div class="drawer-head">
+      <h2>TRIATHLON</h2>
+      <button class="menu-btn" id="closeDrawerBtn" aria-label="Chiudi menu">✕</button>
+    </div>
+    <nav class="drawer-nav" id="drawerNav"></nav>
+    <div class="drawer-foot">
+      <button class="btn btn-sm" style="flex:1" onclick="exportAllData()">Esporta JSON</button>
+      <button class="btn btn-sm" style="flex:1" onclick="triggerImportAll()">Importa JSON</button>
+      <input type="file" id="importAllFile" accept=".json,application/json" style="display:none">
+    </div>
+  </aside>
+
+  <main class="wrap" id="app"></main>
+
+  <div class="modal-bg" id="modalBg">
+    <div class="modal" id="modalBox"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================================
+   1. CONSTANTS, FOODS (56), RECIPES (39), RPE, SOURCES & HELPERS
+   ============================================================================ */
+const STORAGE_KEY = 'triathlon_app_v1';
+
+const ALLERGENS = [
+  'Glutine','Lattosio (intolleranza)','Latte (allergia)','Uova','Pesce',
+  'Crostacei','Molluschi','Arachidi','Frutta a guscio','Soia',
+  'Sesamo','Sedano','Senape','Lupini','Solfiti'
+];
+
+const RPE_DESC = {
+  1:'Molto leggero, riposo attivo', 2:'Facile, respirazione libera', 3:'Comodo, parli senza sforzo',
+  4:'Moderato, ritmo controllato', 5:'Impegnativo ma gestibile', 6:'Sostenuto, frasi brevi',
+  7:'Duro, alta concentrazione', 8:'Molto duro, vicino al limite', 9:'Quasi massimale', 10:'Massimale, esaurimento'
+};
+
+const DISC_INFO = {
+  corsa:{lbl:'Corsa',col:'#d9532b'}, bici:{lbl:'Bici',col:'#1a8f7a'}, nuoto:{lbl:'Nuoto',col:'#2f6fd0'},
+  forza:{lbl:'Rinforzo',col:'#5a4fa0'}, brick:{lbl:'Bici + Corsa',col:'#d9532b'}, riposo:{lbl:'Riposo',col:'#8a96a0'}
+};
+
+const NAV_ITEMS = [
+  {id:'settimana',lbl:'Settimana',ico:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>'},
+  {id:'storico',lbl:'Storico',ico:'<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>'},
+  {id:'nutrizione',lbl:'Nutrizione',ico:'<path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>'},
+  {id:'guida',lbl:'Guida',ico:'<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>'},
+  {id:'sonno',lbl:'Sonno',ico:'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'},
+  {id:'gare',lbl:'Gare',ico:'<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>'},
+  {id:'profilo',lbl:'Profilo',ico:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'}
+];
+
+// Foods: [id, fullName, shortName, kcal, c, p, f, fib, allergens[], unitType]
+// unitType: 'g' | 'egg' | 'oil' | 'ml'
+const FOODS_RAW = [
+  ['avena',"Fiocchi d'avena",'avena',372,60,13,7,10,['Glutine'],'g'],
+  ['pane_int','Pane integrale','pane integrale',240,45,9,3,6,['Glutine'],'g'],
+  ['pane','Pane comune','pane',270,55,8,1.5,3,['Glutine'],'g'],
+  ['fette','Fette biscottate','fette biscottate',410,75,11,6,3.5,['Glutine'],'g'],
+  ['gallette','Gallette di riso','gallette di riso',380,81,8,3,2,[],'g'],
+  ['pasta','Pasta di semola (cruda)','pasta',355,72,12,1.5,3,['Glutine'],'g'],
+  ['pasta_sg','Pasta senza glutine (cruda)','pasta senza glutine',355,78,7,1.5,2,[],'g'],
+  ['riso','Riso (crudo)','riso',350,79,7,0.6,1,[],'g'],
+  ['riso_prec','Riso precotto in busta','riso precotto',160,34,3,1.5,0.5,[],'g'],
+  ['couscous','Cous cous (crudo)','cous cous',360,72,13,1,5,['Glutine'],'g'],
+  ['quinoa','Quinoa (cruda)','quinoa',368,64,14,6,7,[],'g'],
+  ['patate','Patate (crude)','patate',77,17,2,0.1,2,[],'g'],
+  ['miele','Miele','miele',304,82,0.3,0,0,[],'g'],
+  ['marmellata','Marmellata','marmellata',250,60,0.5,0,1,[],'g'],
+  ['datteri','Datteri secchi','datteri',280,70,2.5,0.4,8,[],'g'],
+  ['pollo','Petto di pollo (crudo)','pollo',110,0,23,1.5,0,[],'g'],
+  ['tacchino','Fesa di tacchino (cruda)','tacchino',107,0,24,1,0,[],'g'],
+  ['uova','Uova','uova',143,0.7,12.6,9.5,0,['Uova'],'egg'],
+  ['tonno','Tonno al naturale (sgocciolato)','tonno',110,0,25,1,0,['Pesce'],'g'],
+  ['salmone','Salmone (crudo)','salmone',200,0,20,13,0,['Pesce'],'g'],
+  ['merluzzo','Merluzzo (crudo)','merluzzo',80,0,18,0.7,0,['Pesce'],'g'],
+  ['bresaola','Bresaola','bresaola',150,0,32,2,0,[],'g'],
+  ['tofu','Tofu','tofu',120,2,12,7,1,['Soia'],'g'],
+  ['ceci','Ceci in scatola (sgocciolati)','ceci',120,16,7,2.5,6,[],'g'],
+  ['lenticchie','Lenticchie in scatola (sgocciolate)','lenticchie',90,13,7,0.5,5,[],'g'],
+  ['yg0','Yogurt greco 0%','yogurt greco',57,4,10,0,0,['Latte (allergia)','Lattosio (intolleranza)'],'g'],
+  ['yg_sl','Yogurt greco senza lattosio','yogurt greco SL',57,4,10,0,0,['Latte (allergia)'],'g'],
+  ['yg_soia','Yogurt di soia','yogurt di soia',50,2,4,2.2,1,['Soia'],'g'],
+  ['fiocchi_latte','Fiocchi di latte','fiocchi di latte',100,3,12,4.5,0,['Latte (allergia)','Lattosio (intolleranza)'],'g'],
+  ['parmigiano','Parmigiano Reggiano','parmigiano',390,0,33,28,0,['Latte (allergia)'],'g'],
+  ['whey','Proteine del siero (whey)','whey',380,6,80,5,0,['Latte (allergia)','Lattosio (intolleranza)'],'g'],
+  ['prot_pisello','Proteine di pisello in polvere','proteine di pisello',370,3,80,7,0,[],'g'],
+  ['latte_ps','Latte parzialmente scremato','latte',46,5,3.4,1.5,0,['Latte (allergia)','Lattosio (intolleranza)'],'ml'],
+  ['latte_sl','Latte senza lattosio','latte SL',46,5,3.4,1.5,0,['Latte (allergia)'],'ml'],
+  ['bev_soia','Bevanda di soia','bevanda di soia',40,2,3.5,2,0.5,['Soia'],'ml'],
+  ['bev_riso','Bevanda di riso','bevanda di riso',50,10,0.3,1,0,[],'ml'],
+  ['olio',"Olio extravergine d'oliva",'olio EVO',899,0,0,99.9,0,[],'oil'],
+  ['mandorle','Mandorle','mandorle',600,5,22,53,12,['Frutta a guscio'],'g'],
+  ['noci','Noci','noci',690,5,15,68,6,['Frutta a guscio'],'g'],
+  ['burro_arachidi','Burro di arachidi','burro di arachidi',600,16,25,50,6,['Arachidi'],'g'],
+  ['banana','Banana','banana',89,21,1,0.3,2.6,[],'g'],
+  ['mela','Mela','mela',52,12,0.3,0.2,2.4,[],'g'],
+  ['arancia','Arancia','arancia',47,9,0.9,0.1,2.4,[],'g'],
+  ['frutti_bosco','Frutti di bosco surgelati','frutti di bosco',45,8,1,0.4,5,[],'g'],
+  ['verdure','Verdure di stagione (zucchine, broccoli, insalata…)','verdure',25,4,2,0.3,3,[],'g'],
+  ['fagioli','Fagioli in scatola (sgocciolati)','fagioli',91,13,6,0.5,5,[],'g'],
+  ['piadina','Piadina','piadina',310,50,8,8,2,['Glutine'],'g'],
+  ['prosciutto','Prosciutto cotto sgrassato','prosciutto cotto',130,1,20,5,0,[],'g'],
+  ['mozzarella','Mozzarella light','mozzarella light',160,1,19,9,0,['Latte (allergia)','Lattosio (intolleranza)'],'g'],
+  ['ricotta','Ricotta vaccina','ricotta',146,3.5,8.8,11,0,['Latte (allergia)','Lattosio (intolleranza)'],'g'],
+  ['gamberi','Gamberi (crudi, sgusciati)','gamberi',70,0,15,1,0,['Crostacei'],'g'],
+  ['farro','Farro (crudo)','farro',335,67,15,2.5,7,['Glutine'],'g'],
+  ['gnocchi','Gnocchi di patate','gnocchi',150,33,4,0.3,2,['Glutine'],'g'],
+  ['branzino','Branzino (crudo)','branzino',90,0,18,1.5,0,['Pesce'],'g'],
+  ['hummus','Hummus di ceci','hummus',170,14,7,10,6,['Sesamo'],'g'],
+  ['albume','Albume','albume',45,0.7,11,0.2,0,['Uova'],'ml']
+];
+const FOODS = Object.fromEntries(FOODS_RAW.map(f=>[f[0],{id:f[0],name:f[1],short:f[2],kcal:f[3],c:f[4],p:f[5],f:f[6],fib:f[7],alg:f[8],unit:f[9]}]));
+
+// Recipes (all 39)
+// type: 'col' | 'main' | 'spu', cook: 0|1|2, sat: 0|1|2, pre: bool, post: bool
+// ings: {role:'carb'|'prot'|'fat'|'fix'|'veg', opts:[], min, max, fixed, vegScale}
+const RECIPES = [
+  {id:1,t:'Overnight oats con {prot}, frutta e {fat}',type:'col',cook:0,sat:2,pre:0,
+    ings:[{r:'carb',o:['avena'],min:30,max:120},{r:'fix',o:['latte_ps','latte_sl','bev_soia','bev_riso'],fix:150},{r:'prot',o:['yg0','yg_sl','yg_soia'],min:80,max:300},{r:'fix2',o:['frutti_bosco','banana','mela'],fix:100},{r:'fat',o:['noci','mandorle','burro_arachidi'],min:0,max:35}],
+    prep:'La sera prima mescola avena, latte e yogurt in un barattolo; al mattino aggiungi frutta e frutta secca.'},
+  {id:2,t:'{carb}, marmellata e {prot}',type:'col',cook:0,sat:0,pre:1,
+    ings:[{r:'carb',o:['fette','gallette'],min:20,max:100},{r:'fix',o:['marmellata'],fix:25},{r:'prot',o:['yg0','yg_sl','yg_soia'],min:100,max:300},{r:'fix2',o:['banana','mela'],fix:120},{r:'fat',o:['mandorle','noci','burro_arachidi'],min:0,max:30}],
+    prep:'Nessuna preparazione.'},
+  {id:3,t:'{carb}, {prot} e frutta',type:'col',cook:1,sat:2,pre:0,
+    ings:[{r:'carb',o:['pane_int','pane','gallette'],min:40,max:160},{r:'prot',o:['uova','tofu'],min:55,max:165},{r:'fat',o:['olio'],min:0,max:15},{r:'fix',o:['arancia','mela'],fix:150}],
+    prep:"Uova in padella con un filo d'olio, 5 minuti."},
+  {id:4,t:'{carb}, {prot}, miele e banana',type:'col',cook:0,sat:1,pre:1,
+    ings:[{r:'carb',o:['gallette','fette'],min:20,max:90},{r:'fix',o:['miele'],fix:15},{r:'prot',o:['yg0','yg_sl','yg_soia'],min:100,max:300},{r:'fix2',o:['banana'],fix:120},{r:'fat',o:['burro_arachidi','mandorle'],min:0,max:30}],
+    prep:'Nessuna preparazione.'},
+  {id:5,t:'Frullato di {fix}, {carb} e banana',type:'col',cook:0,sat:0,pre:1,
+    ings:[{r:'fix',o:['latte_ps','latte_sl','bev_soia','bev_riso'],fix:250},{r:'prot',o:['whey','prot_pisello'],min:0,max:40},{r:'carb',o:['avena','miele'],min:0,max:70},{r:'fix2',o:['banana'],fix:120},{r:'fat',o:['burro_arachidi','mandorle'],min:0,max:30}],
+    prep:'Tutto nel frullatore per 30 secondi. Comodo se al mattino hai poca fame.'},
+  {id:6,t:'{carb} con {prot} e verdure',type:'main',cook:1,sat:1,pre:1,
+    ings:[{r:'carb',o:['pasta','pasta_sg','riso'],min:50,max:180},{r:'prot',o:['tonno','pollo','tofu'],min:50,max:220},{r:'fat',o:['olio'],min:5,max:40},{r:'veg',o:['verdure'],veg:1}],
+    prep:"Pasta o riso 10–12 minuti; proteine e verdure saltate in padella con l'olio."},
+  {id:7,t:'{carb} con {prot} e verdure',type:'main',cook:1,sat:1,pre:1,
+    ings:[{r:'carb',o:['riso'],min:50,max:180},{r:'prot',o:['pollo','tacchino','tofu'],min:80,max:250},{r:'fat',o:['olio'],min:5,max:40},{r:'veg',o:['verdure'],veg:1}],
+    prep:'Riso bollito 12–15 minuti; pollo a straccetti in padella.'},
+  {id:8,t:'Insalata di {fix} e {prot} con {carb}',type:'main',cook:0,sat:2,pre:0,
+    ings:[{r:'fix',o:['ceci','lenticchie'],fix:150},{r:'carb',o:['pane_int','pane','gallette'],min:0,max:160},{r:'prot',o:['tonno','bresaola'],min:0,max:180},{r:'fat',o:['olio'],min:5,max:40},{r:'veg',o:['verdure'],veg:1}],
+    prep:'Tutto da scatola: scola, condisci con olio e mangia.'},
+  {id:9,t:'{carb} con {prot} e verdure',type:'main',cook:0,sat:1,pre:1,
+    ings:[{r:'carb',o:['riso_prec'],min:100,max:450},{r:'prot',o:['tonno','bresaola','lenticchie'],min:40,max:250},{r:'fat',o:['olio'],min:5,max:40},{r:'veg',o:['verdure'],veg:1}],
+    prep:'Riso in busta: 2 minuti al microonde. Verdure già pronte o in insalata.'},
+  {id:10,t:'{prot} e patate al forno',type:'main',cook:2,sat:2,pre:0,
+    ings:[{r:'carb',o:['patate'],min:150,max:700},{r:'prot',o:['merluzzo','pollo','tofu'],min:100,max:320},{r:'fat',o:['olio'],min:5,max:40},{r:'veg',o:['verdure'],veg:1}],
+    prep:'Patate a spicchi e secondo in teglia, 200 °C per 30–35 minuti.'},
+  {id:11,t:'Panino con {prot}, {fat} e rucola',type:'main',cook:0,sat:1,pre:1,
+    ings:[{r:'carb',o:['pane','pane_int'],min:60,max:220},{r:'prot',o:['bresaola','tonno'],min:30,max:160},{r:'fat',o:['parmigiano','olio'],min:0,max:50},{r:'veg',o:['verdure'],veg:0.5}],
+    prep:'Nessuna cottura.'},
+  {id:12,t:'{carb} con {prot} e verdure',type:'main',cook:1,sat:1,pre:0,
+    ings:[{r:'carb',o:['couscous','quinoa','riso'],min:50,max:180},{r:'prot',o:['tofu','pollo'],min:80,max:300},{r:'fat',o:['olio'],min:0,max:25},{r:'veg',o:['verdure'],veg:1}],
+    prep:'Cous cous in acqua bollente 5 minuti (quinoa o riso 12–15); proteine e verdure in padella.'},
+  {id:13,t:'{carb} con {prot} e verdure',type:'main',cook:2,sat:1,pre:0,
+    ings:[{r:'carb',o:['quinoa','riso'],min:50,max:180},{r:'prot',o:['salmone','merluzzo'],min:80,max:250},{r:'fat',o:['olio'],min:0,max:20},{r:'veg',o:['verdure'],veg:1}],
+    prep:'Quinoa o riso 15 minuti; pesce al forno o in padella 10–12 minuti.'},
+  {id:14,t:'Frittata con verdure e pane',type:'main',cook:1,sat:2,pre:0,
+    ings:[{r:'prot',o:['uova'],min:110,max:275},{r:'carb',o:['pane_int','pane','gallette'],min:40,max:200},{r:'fat',o:['olio'],min:0,max:20},{r:'veg',o:['verdure'],veg:1}],
+    prep:'Uova sbattute con le verdure, in padella coperta 8–10 minuti.'},
+  {id:15,t:'{carb} e {prot}',type:'main',cook:1,sat:2,pre:0,
+    ings:[{r:'carb',o:['pasta','pasta_sg','riso'],min:40,max:160},{r:'prot',o:['lenticchie','ceci'],min:100,max:300},{r:'fix',o:['parmigiano'],fix:10},{r:'fat',o:['olio'],min:0,max:25},{r:'veg',o:['verdure'],veg:0.5}],
+    prep:'Lenticchie in scatola scaldate con la pasta, 10 minuti; parmigiano a fine cottura.'},
+  {id:16,t:'{prot}, frutta e {fat}',type:'spu',cook:0,sat:1,pre:0,
+    ings:[{r:'prot',o:['yg0','yg_sl','yg_soia'],min:100,max:300},{r:'fix',o:['mela','frutti_bosco','arancia'],fix:150},{r:'carb',o:['miele'],min:0,max:30},{r:'fat',o:['noci','mandorle'],min:0,max:40}],
+    prep:'Mescola in una ciotola.'},
+  {id:17,t:'{carb}, marmellata e {prot}',type:'spu',cook:0,sat:0,pre:1,
+    ings:[{r:'carb',o:['pane','fette','gallette'],min:30,max:130},{r:'fix',o:['marmellata'],fix:25},{r:'prot',o:['yg0','yg_sl','yg_soia'],min:0,max:170}],
+    prep:'Ideale 1–2 ore prima di allenarti: pochi grassi e poche fibre.'},
+  {id:18,t:'Gallette con {prot}',type:'spu',cook:0,sat:0,pre:1,
+    ings:[{r:'carb',o:['gallette'],min:15,max:70},{r:'prot',o:['bresaola','tonno','tofu'],min:20,max:120},{r:'fat',o:['olio','parmigiano'],min:0,max:15}],
+    prep:'Pronto subito.'},
+  {id:19,t:'Banana, {fat} e {prot}',type:'spu',cook:0,sat:0,pre:1,
+    ings:[{r:'fix',o:['banana'],fix:120},{r:'carb',o:['gallette','fette'],min:0,max:50},{r:'fat',o:['burro_arachidi','mandorle'],min:0,max:30},{r:'prot',o:['yg0','yg_sl','yg_soia'],min:0,max:200}],
+    prep:'Pronto subito.'},
+  {id:20,t:'Frullato proteico con banana',type:'spu',cook:0,sat:0,pre:0,post:1,
+    ings:[{r:'fix',o:['latte_ps','latte_sl','bev_soia','bev_riso'],fix:250},{r:'prot',o:['whey','prot_pisello'],min:10,max:40},{r:'fix2',o:['banana'],fix:120},{r:'carb',o:['miele','avena'],min:0,max:40}],
+    prep:"Ottimo subito dopo l'allenamento."},
+  {id:21,t:'Datteri, {fat} e {prot}',type:'spu',cook:0,sat:0,pre:0,
+    ings:[{r:'carb',o:['datteri'],min:20,max:90},{r:'fat',o:['mandorle','noci'],min:0,max:35},{r:'prot',o:['yg0','yg_sl','yg_soia'],min:0,max:200}],
+    prep:'Piccolo e molto energetico, comodo se hai poca fame.'},
+  {id:22,t:'{prot} e frutta',type:'spu',cook:0,sat:2,pre:0,
+    ings:[{r:'prot',o:['fiocchi_latte','yg_sl','yg_soia'],min:100,max:250},{r:'fix',o:['mela','arancia'],fix:150},{r:'carb',o:['fette','gallette'],min:0,max:45}],
+    prep:'Pronto subito.'},
+  {id:23,t:'Pancake di {carb}, albumi e banana',type:'col',cook:1,sat:1,pre:0,
+    ings:[{r:'carb',o:['avena'],min:30,max:110},{r:'prot',o:['albume'],min:60,max:300},{r:'fix',o:['banana'],fix:100},{r:'fat',o:['burro_arachidi','mandorle'],min:0,max:25}],
+    prep:'Frulla avena, albumi e banana; cuoci in padella antiaderente 2 minuti per lato.'},
+  {id:24,t:'Toast con {prot}, {fat} e frutta',type:'col',cook:1,sat:1,pre:0,
+    ings:[{r:'carb',o:['pane_int','pane','gallette'],min:50,max:160},{r:'prot',o:['prosciutto','bresaola'],min:30,max:120},{r:'fat',o:['mozzarella','parmigiano'],min:0,max:60},{r:'fix',o:['arancia','mela'],fix:150}],
+    prep:'Pane tostato in padella o nel tostapane, 3 minuti.'},
+  {id:25,t:'{carb} con {prot}, miele e frutta',type:'col',cook:0,sat:1,pre:0,
+    ings:[{r:'carb',o:['pane_int','pane','gallette'],min:40,max:150},{r:'prot',o:['ricotta','yg0','yg_sl','yg_soia'],min:60,max:200},{r:'fix',o:['miele'],fix:15},{r:'fix2',o:['frutti_bosco','mela'],fix:120}],
+    prep:'Nessuna preparazione.'},
+  {id:26,t:'Piadina con {prot}, {fat} e insalata',type:'main',cook:0,sat:1,pre:1,
+    ings:[{r:'carb',o:['piadina','pane'],min:60,max:240},{r:'prot',o:['prosciutto','bresaola','tonno'],min:30,max:160},{r:'fat',o:['mozzarella','olio'],min:0,max:90},{r:'veg',o:['verdure'],veg:0.5}],
+    prep:'Piadina scaldata in padella 1 minuto per lato.'},
+  {id:27,t:'{carb} con {prot} e zucchine',type:'main',cook:1,sat:1,pre:1,
+    ings:[{r:'carb',o:['riso'],min:50,max:180},{r:'prot',o:['gamberi','merluzzo','pollo'],min:80,max:300},{r:'fat',o:['olio'],min:5,max:40},{r:'veg',o:['verdure'],veg:1}],
+    prep:"Riso 12–15 minuti; gamberi e zucchine saltati in padella con l'olio 5 minuti."},
+  {id:28,t:'{carb} e {prot}',type:'main',cook:1,sat:2,pre:0,
+    ings:[{r:'carb',o:['pasta','pasta_sg','riso'],min:40,max:160},{r:'prot',o:['fagioli','ceci','lenticchie'],min:100,max:320},{r:'fix',o:['parmigiano'],fix:10},{r:'fat',o:['olio'],min:0,max:30},{r:'veg',o:['verdure'],veg:0.5}],
+    prep:'Fagioli in scatola scaldati con la pasta, 10 minuti; parmigiano a fine cottura.'},
+  {id:29,t:'Insalata di {carb} con {prot} e pomodorini',type:'main',cook:2,sat:2,pre:0,
+    ings:[{r:'carb',o:['farro','riso','quinoa'],min:50,max:170},{r:'prot',o:['tonno','ceci','pollo'],min:50,max:240},{r:'fat',o:['olio'],min:5,max:40},{r:'veg',o:['verdure'],veg:1}],
+    prep:'Farro 20–25 minuti (o precotto); condisci a freddo con tonno, pomodorini e olio.'},
+  {id:30,t:'{carb} al pomodoro con {prot} alla piastra',type:'main',cook:1,sat:1,pre:1,
+    ings:[{r:'carb',o:['gnocchi','pasta','riso'],min:150,max:550},{r:'prot',o:['pollo','tacchino','tofu'],min:80,max:260},{r:'fat',o:['olio'],min:0,max:30},{r:'veg',o:['verdure'],veg:0.5}],
+    prep:'Gnocchi 2–3 minuti in acqua bollente, poi al pomodoro; carne alla piastra 6–8 minuti.'},
+  {id:31,t:'{prot} al cartoccio con {carb}',type:'main',cook:2,sat:1,pre:0,
+    ings:[{r:'carb',o:['couscous','quinoa','riso'],min:50,max:180},{r:'prot',o:['branzino','merluzzo','salmone'],min:120,max:350},{r:'fat',o:['olio'],min:0,max:30},{r:'veg',o:['verdure'],veg:1}],
+    prep:'Pesce in carta forno con olio e limone, 200 °C per 20 minuti; cous cous in acqua bollente 5 minuti.'},
+  {id:32,t:'{prot} ai ferri con patate e insalata',type:'main',cook:2,sat:2,pre:0,
+    ings:[{r:'carb',o:['patate'],min:150,max:700},{r:'prot',o:['tacchino','pollo','tofu'],min:100,max:320},{r:'fat',o:['olio'],min:5,max:35},{r:'veg',o:['verdure'],veg:1}],
+    prep:'Patate a cubetti in padella coperta 15 minuti; carne ai ferri 6–8 minuti.'},
+  {id:33,t:'Piadina con {prot}, {fat} e verdure',type:'main',cook:1,sat:1,pre:0,
+    ings:[{r:'carb',o:['piadina','pane_int'],min:60,max:240},{r:'prot',o:['pollo','tacchino','tofu'],min:60,max:250},{r:'fat',o:['hummus','olio'],min:0,max:80},{r:'veg',o:['verdure'],veg:0.5}],
+    prep:'Pollo a straccetti in padella 6–8 minuti, poi nella piadina con hummus e verdure.'},
+  {id:34,t:'Insalata di {carb} con {prot}, uovo e verdure',type:'main',cook:1,sat:1,pre:0,
+    ings:[{r:'carb',o:['riso','farro','quinoa'],min:50,max:180},{r:'prot',o:['tonno','pollo','ceci'],min:40,max:220},{r:'fix',o:['uova'],fix:55},{r:'fat',o:['olio'],min:0,max:30},{r:'veg',o:['verdure'],veg:1}],
+    prep:'Riso bollito e raffreddato; uovo sodo 9 minuti; condisci tutto con tonno e olio.'},
+  {id:35,t:'Bowl di {carb}, {fix} e {prot}',type:'main',cook:2,sat:2,pre:0,
+    ings:[{r:'carb',o:['quinoa','riso','couscous'],min:40,max:160},{r:'fix',o:['ceci','fagioli'],fix:80},{r:'prot',o:['salmone','pollo','tofu'],min:70,max:220},{r:'fat',o:['olio'],min:0,max:25},{r:'veg',o:['verdure'],veg:1}],
+    prep:'Quinoa 15 minuti; salmone in padella 8–10 minuti; ceci da scatola.'},
+  {id:36,t:'{carb} con {prot}',type:'spu',cook:0,sat:0,pre:1,
+    ings:[{r:'carb',o:['pane','gallette','pane_int'],min:25,max:100},{r:'prot',o:['prosciutto','bresaola','tonno'],min:20,max:100}],
+    prep:'Panino piccolo: pochi grassi, va bene anche 1–2 ore prima di allenarti.'},
+  {id:37,t:'{carb} con {fat} e verdure crude',type:'spu',cook:0,sat:1,pre:0,
+    ings:[{r:'carb',o:['gallette','pane_int'],min:15,max:70},{r:'fat',o:['hummus','ricotta'],min:30,max:120},{r:'fix',o:['verdure'],fix:120}],
+    prep:'Verdure crude a bastoncini (carote, finocchi, sedano) da intingere.'},
+  {id:38,t:'{prot} con miele e frutti di bosco',type:'spu',cook:0,sat:1,pre:0,
+    ings:[{r:'prot',o:['ricotta','yg0','yg_sl','yg_soia'],min:80,max:250},{r:'carb',o:['miele'],min:0,max:30},{r:'fix',o:['frutti_bosco','mela'],fix:120}],
+    prep:'Pronto subito.'},
+  {id:39,t:'Tazza di {fix} con {carb}',type:'spu',cook:0,sat:1,pre:0,
+    ings:[{r:'fix',o:['latte_ps','latte_sl','bev_soia','bev_riso'],fix:250},{r:'carb',o:['avena','fette'],min:20,max:80},{r:'prot',o:['yg0','yg_sl','yg_soia'],min:0,max:170}],
+    prep:"Latte (o bevanda vegetale) con fiocchi d'avena, anche tiepido."}
+];
+
+const RUN_MET_PTS = [[4,6.5],[4.5,7.8],[5.1,8.5],[5.65,9],[6.15,9.3],[6.7,10.5],[7,11],[7.5,11.8],[8,12],[8.6,12.5],[9,13],[9.45,14.8],[10,14.8],[11,16.8],[12,18.5],[13,19.8],[14,23]];
+
+const SOURCES = [
+  ['ACSM/AND/DC 2016 — Nutrition and Athletic Performance','https://pubmed.ncbi.nlm.nih.gov/26891166/'],
+  ['ISSN Protein 2017 — Protein and Exercise','https://jissn.biomedcentral.com/articles/10.1186/s12970-017-0177-8'],
+  ['ACSM Fluid Replacement 2007 — Exercise and Fluid Replacement','https://pubmed.ncbi.nlm.nih.gov/17277604/'],
+  ['2024 Adult Compendium of Physical Activities','https://pacompendium.com/'],
+  ['Frankenfield et al. 2005 — Mifflin-St Jeor Validation','https://pubmed.ncbi.nlm.nih.gov/15883556/'],
+  ['Thompson & Manore 1996 — Cunningham BMR in Athletes','https://pubmed.ncbi.nlm.nih.gov/8978274/'],
+  ['IOC Consensus Statement on REDs 2023','https://bjsm.bmj.com/content/57/17/1073'],
+  ['Walsh et al. BJSM 2021 — Sleep and the Athlete','https://bjsm.bmj.com/content/55/7/356'],
+  ['Oliveira et al. 2024 — Polarized Training Distribution','https://pubmed.ncbi.nlm.nih.gov/38219234/'],
+  ['Lauersen et al. BJSM 2014 — Strength Training & Injury Prevention','https://bjsm.bmj.com/content/48/11/871'],
+  ['Blagrove et al. 2018 — Strength Training on Running Economy','https://pubmed.ncbi.nlm.nih.gov/29249083/'],
+  ['Garmin-RUNSAFE BJSM 2025 — Single-Session Running Load','https://bjsm.bmj.com/'],
+  ['Nielsen et al. JOSPT 2014 — Weekly Distance Progression','https://pubmed.ncbi.nlm.nih.gov/25155475/'],
+  ['Kakouris et al. 2021 — Running-Related Musculoskeletal Injuries','https://pubmed.ncbi.nlm.nih.gov/33961910/'],
+  ['Helms et al. JISSN 2014 — Rate of Weight Loss in Athletes','https://jissn.biomedcentral.com/articles/10.1186/1550-2783-11-20'],
+  ['Garthe et al. IJSNEM 2011 — Slow vs Fast Weight Reduction','https://pubmed.ncbi.nlm.nih.gov/21558571/'],
+  ['EFSA 2015 — Scientific Opinion on the Safety of Caffeine','https://www.efsa.europa.eu/en/efsajournal/pub/4102'],
+  ['CREA — Tabelle di Composizione degli Alimenti','https://www.alimentinutrizione.it/'],
+  ['BDA-IEO — Banca Dati di Composizione degli Alimenti','https://bda.ieo.it/'],
+  ['Regolamento UE 1169/2011 — Allergeni Alimentari','https://eur-lex.europa.eu/legal-content/IT/TXT/?uri=CELEX:32011R1169'],
+  ['Holt et al. 1995 — A Satiety Index of Common Foods','https://pubmed.ncbi.nlm.nih.gov/7498104/'],
+  ['Sports Dietitians Australia — Fueling Guidelines','https://www.sportsdietitians.com.au/'],
+  ['Lis et al. 2019 — Low-FODMAP & Pre-Exercise GI Distress','https://pubmed.ncbi.nlm.nih.gov/30604177/']
+];
+
+// Formatting & Date Utilities
+const $ = s => document.querySelector(s);
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = (n, d=0) => (n==null||isNaN(n)) ? '—' : Number(n).toLocaleString('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d});
+const parseNum = v => { if(v===''||v==null) return null; const n = parseFloat(String(v).replace(',','.')); return isNaN(n)?null:n; };
+const todayISO = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+const parseISO = s => { const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); };
+const toISO = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const addDays = (iso, n) => { const d=parseISO(iso); d.setDate(d.getDate()+n); return toISO(d); };
+const diffDays = (a, b) => Math.round((parseISO(b)-parseISO(a))/86400000);
+const getMonday = iso => { const d=parseISO(iso); const day=d.getDay()||7; d.setDate(d.getDate()-(day-1)); return toISO(d); };
+const getSunday = iso => { const d=parseISO(iso); const day=d.getDay(); d.setDate(d.getDate()-day); return toISO(d); };
+const fmtDateShort = iso => {
+  if(!iso) return '—';
+  const d=parseISO(iso);
+  const gg=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'][d.getDay()];
+  const mm=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'][d.getMonth()];
+  return `${gg} ${d.getDate()} ${mm}`;
+};
+const fmtDateFull = iso => {
+  if(!iso) return '—';
+  const d=parseISO(iso);
+  const mm=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'][d.getMonth()];
+  return `${d.getDate()} ${mm} ${d.getFullYear()}`;
+};
+const fmtPace = (min, km) => {
+  if(!min||!km||km<=0) return '—';
+  const secTotal = Math.round((min*60)/km);
+  const m = Math.floor(secTotal/60), s = secTotal%60;
+  return `${m}:${String(s).padStart(2,'0')} /km`;
+};
+const uid = () => Math.random().toString(36).slice(2,10);
+
+function toast(msg){
+  const t=$('#toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+/* ============================================================================
+   2. STATE & PERSISTENCE (localStorage + JSON Export/Import)
+   ============================================================================ */
+function makeDefaultWeek(){
+  const mon = getMonday(todayISO());
+  return {
+    start: mon,
+    title: 'Settimana tipo (esempio)',
+    note: '',
+    days: [
+      {date:mon, type:'nuoto', title:'Nuoto tecnica + aerobico', time:'07:15', dur:45, km:1.6, fc:'Z2', rpe:5, meteo:'Piscina', impegni:'', steps:['Riscaldamento 300 m sciolti',['200 m stile','100 m dorso'],'Tecnica 4×50 m recupero 20"','Corpo centrale 8×100 m Z2 rec. 20"','Defaticamento 200 m']},
+      {date:addDays(mon,1), type:'corsa', title:'Corsa facile Z2', time:'18:00', dur:40, km:6.5, fc:'Z2', rpe:4, meteo:'Sereno', impegni:'', steps:['10 min riscaldamento Z1','25 min ritmo facile in Z2','5 min defaticamento + mobilità']},
+      {date:addDays(mon,2), type:'forza', title:'Rinforzo gambe e core', time:'18:30', dur:40, km:0, fc:'Z1–Z2', rpe:6, meteo:'Indoor', impegni:'', steps:['Attivazione 8 min','Circuito 3 giri:',['Squat bulgaro 3×10/lato','Stacco rumeno 3×10','Polpacci monopodalici 3×12','Plank laterale 3×30"/lato'],'Stretching 5 min']},
+      {date:addDays(mon,3), type:'bici', title:'Bici aerobica agilità', time:'07:00', dur:60, km:24, fc:'Z2', rpe:5, meteo:'Variabile', impegni:'', steps:['15 min agilità 90 rpm','35 min Z2 costante','10 min defaticamento']},
+      {date:addDays(mon,4), type:'riposo', title:'Riposo attivo', time:'', dur:0, km:0, fc:'', rpe:1, meteo:'', impegni:'', steps:['Camminata leggera o mobilità 15 min']},
+      {date:addDays(mon,5), type:'brick', title:'Brick bici + corsa', time:'08:30', dur:75, bikeDur:55, runDur:20, km:3.5, bikeKm:22, fc:'Z2', rpe:6, meteo:'Soleggiato', impegni:'', steps:['Bici 55 min Z2 cadenza agile','Transizione rapida 3 min','Corsa 20 min facile senza forzare']},
+      {date:addDays(mon,6), type:'corsa', title:'Lungo lento', time:'08:30', dur:55, km:9, fc:'Z2', rpe:5, meteo:'Soleggiato', impegni:'Pesata del mattino', steps:['10 min Z1','40 min Z2 costante','5 min defaticamento']}
+    ]
+  };
+}
+
+function defaultState(){
+  const y = new Date().getFullYear() + 1;
+  return {
+    profile: {
+      name:'', age:null, weight:null, wake:'06:30', rhr:null, maxHr:null,
+      disciplines:'Nuoto, Bici, Corsa', goal:'Completare il triathlon in salute',
+      sex:'M', height:null, bodyFat:null, leanMass:null,
+      activity:1.3, nutGoal:'maintain', hunger:'normale', cook:1, mealsCount:0, kcalCap:null,
+      allergens:[], targetRaceId:null
+    },
+    weeks: [makeDefaultWeek()],
+    logs: {},       // by date ISO: {done, dur, km, bikeDur, bikeKm, runDur, runKm, shoeId, rpe, notes}
+    feedback: {},   // by week start ISO: string
+    sleep: [],      // [{id, date, bed, wake, hours, awakenings, rhr, quality, notes}]
+    weights: [],    // [{id, date, kg}]
+    bias: [],       // [{id, date, weight, fatPct, leanMass, smm, water, visceral, fatKg, protein, minerals, bmr, bmi, score}]
+    caffeine: {},   // by date ISO: count
+    sweat: [],      // [{id, date, disc, pre, post, drunk, dur, temp}]
+    shoes: [],      // [{id, model, initKm, since, photo, expectedKm, retired}]
+    races: [
+      {id:'r1',name:'Triathlon Sprint Rimini',place:'Rimini',region:'Emilia-Romagna',date:`${y}-05-10`,dateText:`10 maggio ${y}`,distances:'750m / 20km / 5km',formats:['triathlon','sprint'],link:'https://www.fitri.it/',notes:'Percorso veloce pianeggiante',confirmed:true},
+      {id:'r2',name:'Triathlon Olimpico Bardolino',place:'Bardolino',region:'Veneto',date:`${y}-06-14`,dateText:`14 giugno ${y}`,distances:'1,5km / 40km / 10km',formats:['triathlon','olimpico'],link:'https://www.triathlonbardolino.it/',notes:'Storica gara sul Lago di Garda',confirmed:true},
+      {id:'r3',name:'IRONMAN 70.3 Emilia-Romagna',place:'Cervia',region:'Emilia-Romagna',date:`${y}-09-20`,dateText:`20 settembre ${y}`,distances:'1,9km / 90km / 21,1km',formats:['triathlon','70.3'],link:'https://www.ironman.com/',notes:'Percorso piatto, ideale per esordio',confirmed:false}
+    ],
+    nutOverrides: {}, // by date ISO: {timing, rest, corsa:{dur,km}, bici:{dur,km,int}, nuoto:{dur,int}, forza:{dur,int}}
+    mealChoices: {},  // by date ISO: {slotId: recipeId}
+    cheatMeals: {}    // by date ISO: {slotId: {text, kcal, c, p, f, fib, items:[]}}
+  };
+}
+
+let STATE = loadState();
+let currentRoute = 'settimana';
+let selectedWeekIdx = 0;
+let nutSelectedDate = todayISO();
+let raceFilterType = 'tutte';
+let raceFilterFrom = todayISO();
+
+function loadState(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    const def = defaultState();
+    return {
+      ...def, ...parsed,
+      profile: {...def.profile, ...(parsed.profile||{})}
+    };
+  } catch(e){
+    console.error('Errore lettura localStorage', e);
+    return defaultState();
+  }
+}
+
+function saveState(){
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
+  } catch(e){
+    toast('Spazio di salvataggio pieno: esporta un backup JSON');
+  }
+}
+
+function exportAllData(){
+  const blob = new Blob([JSON.stringify(STATE, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `triathlon_backup_${todayISO()}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('Backup JSON scaricato');
+}
+
+function triggerImportAll(){ $('#importAllFile').click(); }
+$('#importAllFile').addEventListener('change', e => {
+  const file = e.target.files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const obj = JSON.parse(r.result);
+      if(!obj.profile && !obj.weeks) throw new Error('Formato non valido');
+      STATE = {...defaultState(), ...obj, profile:{...defaultState().profile, ...(obj.profile||{})}};
+      saveState();
+      closeDrawer();
+      render();
+      toast('Dati importati correttamente');
+    } catch(err){ toast('File JSON non valido'); }
+  };
+  r.readAsText(file);
+  e.target.value = '';
+});
+
+// Check if external AI bridge exists (works seamlessly without AI)
+function hasAI(){ return typeof window.TRI_AI_CALL === 'function'; }
+
+/* ============================================================================
+   3. PHYSIOLOGY, SEMAFORO, NUTRITION & PORTION OPTIMIZER ENGINES
+   ============================================================================ */
+function getEffectiveWeight(){
+  if(STATE.weights.length){
+    const s=[...STATE.weights].sort((a,b)=>b.date.localeCompare(a.date));
+    return s[0].kg;
+  }
+  if(STATE.bias.length){
+    const s=[...STATE.bias].sort((a,b)=>b.date.localeCompare(a.date));
+    if(s[0].weight) return s[0].weight;
+  }
+  return STATE.profile.weight;
+}
+
+function getLatestBIA(){
+  if(!STATE.bias.length) return null;
+  return [...STATE.bias].sort((a,b)=>b.date.localeCompare(a.date))[0];
+}
+
+function getEffectiveLeanMass(){
+  const bia = getLatestBIA();
+  if(bia && bia.leanMass) return bia.leanMass;
+  if(STATE.profile.leanMass) return STATE.profile.leanMass;
+  const w = getEffectiveWeight();
+  const bf = (bia && bia.fatPct!=null) ? bia.fatPct : STATE.profile.bodyFat;
+  if(w && bf!=null) return +(w * (1 - bf/100)).toFixed(1);
+  return null;
+}
+
+function getMaxHR(){
+  if(STATE.profile.maxHr) return STATE.profile.maxHr;
+  if(STATE.profile.age) return Math.round(208 - 0.7 * STATE.profile.age);
+  return null;
+}
+
+function getKarvonenZones(){
+  const maxHr = getMaxHR(), rhr = STATE.profile.rhr;
+  if(!maxHr || !rhr) return null;
+  const hrr = maxHr - rhr;
+  const pcts = [[.5,.6,'Z1','Recupero','#7fa7c4'],[.6,.7,'Z2','Aerobico base','#3c9a6b'],[.7,.8,'Z3','Tempo / Medio','#d9a62b'],[.8,.9,'Z4','Soglia','#e0702f'],[.9,1,'Z5','VO2max','#c8364a']];
+  return pcts.map(([a,b,z,desc,col])=>({z,desc,col,lo:Math.round(rhr+hrr*a),hi:Math.round(rhr+hrr*b),pct:`${Math.round(a*100)}–${Math.round(b*100)}%`}));
+}
+
+function findDayPlan(iso){
+  for(const w of STATE.weeks){
+    const d = (w.days||[]).find(x=>x.date===iso);
+    if(d) return d;
+  }
+  return null;
+}
+
+function calcSemaforo(iso){
+  const plan = findDayPlan(iso);
+  const isRest = !plan || plan.type === 'riposo';
+  const sleepMap = Object.fromEntries(STATE.sleep.map(s=>[s.date,s]));
+  const tonight = sleepMap[iso];
+  if(!tonight) return {color:'none', reasons:[], msg:'Registra il sonno di stanotte nella sezione Sonno per il semaforo del mattino.', isRest};
+
+  let yellows = 0, reds = 0;
+  const reasons = [];
+
+  if(tonight.hours < 6){ reds++; reasons.push(`Sonno ${fmt(tonight.hours,1)} h (< 6 h)`); }
+  else if(tonight.hours < 7){ yellows++; reasons.push(`Sonno ${fmt(tonight.hours,1)} h (< 7 h)`); }
+
+  if(tonight.quality && tonight.quality <= 2){ yellows++; reasons.push(`Qualità sonno ${tonight.quality}/5`); }
+
+  // RHR vs previous 7 nights (need >= 3)
+  if(tonight.rhr){
+    const prev = STATE.sleep.filter(s => s.rhr && s.date < iso && diffDays(s.date, iso) <= 7);
+    if(prev.length >= 3){
+      const avg = prev.reduce((a,b)=>a+b.rhr,0)/prev.length;
+      const diff = tonight.rhr - avg;
+      if(diff >= 7){ reds++; reasons.push(`FC riposo ${tonight.rhr} bpm (+${fmt(diff,1)} sulla media ${fmt(avg,1)})`); }
+      else if(diff >= 5){ yellows++; reasons.push(`FC riposo ${tonight.rhr} bpm (+${fmt(diff,1)} sulla media ${fmt(avg,1)})`); }
+    }
+  }
+
+  // RPE >= 8 in previous 2 days
+  const d1 = addDays(iso,-1), d2 = addDays(iso,-2);
+  const hard = [d1,d2].find(d => STATE.logs[d]?.done && STATE.logs[d]?.rpe >= 8);
+  if(hard){ yellows++; reasons.push(`Fatica alta (RPE ${STATE.logs[hard].rpe}) il ${fmtDateShort(hard)}`); }
+
+  let color = 'green';
+  if(reds >= 1 || yellows >= 2) color = 'red';
+  else if(yellows === 1) color = 'yellow';
+
+  let msg;
+  if(isRest){
+    msg = color==='green' ? 'Giorno di riposo: recupero regolare, mantieni buona idratazione e mobilità leggera.'
+        : color==='yellow' ? 'Giorno di riposo utile per recuperare: evita sforzi extra e cura il sonno stasera.'
+        : 'Giorno di riposo fondamentale: priorità assoluta a recupero, sonno e alimentazione.';
+  } else {
+    msg = color==='green' ? 'Allenamento come da piano.'
+        : color==='yellow' ? 'Fai la seduta senza superare la FC indicata; se le gambe sono pesanti accorciala.'
+        : 'Accorcia di un terzo e resta in Z1–Z2, oppure sposta a domani.';
+  }
+  return {color, reasons, msg, isRest};
+}
+
+function getLongRunWarning(iso, runKm){
+  if(!runKm || runKm <= 0) return null;
+  // Find longest completed run in last 30 days strictly before iso
+  let max30 = 0;
+  for(const [d, log] of Object.entries(STATE.logs)){
+    if(!log.done || d >= iso) continue;
+    const dd = diffDays(d, iso);
+    if(dd >= 1 && dd <= 30){
+      const plan = findDayPlan(d);
+      const rk = (plan?.type === 'brick') ? (log.runKm||0) : (plan?.type === 'corsa' ? (log.km||0) : 0);
+      if(rk > max30) max30 = rk;
+    }
+  }
+  if(max30 <= 0) return null;
+  const pct = ((runKm - max30) / max30) * 100;
+  if(pct > 10) return {pct: Math.round(pct), max30};
+  return null;
+}
+
+// MET calculations (2024 Adult Compendium)
+function runMET(kmh){
+  const mph = kmh / 1.60934;
+  if(mph <= RUN_MET_PTS[0][0]) return RUN_MET_PTS[0][1];
+  for(let i=1;i<RUN_MET_PTS.length;i++){
+    const [x0,y0]=RUN_MET_PTS[i-1], [x1,y1]=RUN_MET_PTS[i];
+    if(mph <= x1) return y0 + (y1-y0)*((mph-x0)/(x1-x0));
+  }
+  return RUN_MET_PTS[RUN_MET_PTS.length-1][1];
+}
+function bikeMET(kmh, intKey){
+  if(kmh && kmh > 0){
+    if(kmh < 19) return 6.8;
+    if(kmh < 22) return 8;
+    if(kmh < 26) return 10;
+    return 12;
+  }
+  return {facile:6.8, moderata:8, sostenuta:10, gara:12}[intKey||'moderata'] || 8;
+}
+function swimMET(intKey){ return {lento:5.8, medio:8, veloce:10.5}[intKey||'medio'] || 8; }
+function strMET(intKey){ return {moderata:3.5, intensa:6}[intKey||'moderata'] || 3.5; }
+
+function inferTimingFromTime(t){
+  if(!t) return 'mattina_tardi';
+  const h = parseInt(t.split(':')[0],10);
+  if(isNaN(h)) return 'mattina_tardi';
+  if(h < 8) return 'presto';
+  if(h < 13) return 'mattina_tardi';
+  return 'pomeriggio';
+}
+
+function getNutDaySessions(iso){
+  const ov = STATE.nutOverrides[iso];
+  if(ov) return {...ov, isManual:true};
+  const plan = findDayPlan(iso);
+  const log = STATE.logs[iso];
+  const base = {timing:'none', rest:true, corsa:{dur:0,km:0}, bici:{dur:0,km:0,int:'moderata'}, nuoto:{dur:0,int:'medio'}, forza:{dur:0,int:'moderata'}, isManual:false};
+  if(!plan || plan.type === 'riposo') return base;
+  base.rest = false;
+  base.timing = inferTimingFromTime(plan.time);
+  const useLog = log && log.done;
+  if(plan.type === 'corsa'){
+    base.corsa.dur = useLog ? (log.dur||0) : (plan.dur||0);
+    base.corsa.km = useLog ? (log.km||0) : (plan.km||0);
+  } else if(plan.type === 'bici'){
+    base.bici.dur = useLog ? (log.dur||0) : (plan.dur||0);
+    base.bici.km = useLog ? (log.km||0) : (plan.km||0);
+  } else if(plan.type === 'nuoto'){
+    base.nuoto.dur = useLog ? (log.dur||0) : (plan.dur||0);
+  } else if(plan.type === 'forza'){
+    base.forza.dur = useLog ? (log.dur||0) : (plan.dur||0);
+  } else if(plan.type === 'brick'){
+    base.bici.dur = useLog ? (log.bikeDur||0) : (plan.bikeDur || Math.round((plan.dur||0)*0.7));
+    base.bici.km = useLog ? (log.bikeKm||0) : (plan.bikeKm||0);
+    base.corsa.dur = useLog ? (log.runDur||0) : (plan.runDur || Math.round((plan.dur||0)*0.3));
+    base.corsa.km = useLog ? (log.runKm||0) : (plan.km||0);
+  }
+  return base;
+}
+
+function calcNutrition(iso){
+  const p = STATE.profile;
+  const w = getEffectiveWeight();
+  if(!p.sex || !p.age || !w || !p.height) return {missing:true};
+
+  const bia = getLatestBIA();
+  const lbm = getEffectiveLeanMass();
+  let bmr, bmrSrc;
+  if(bia && bia.bmr){ bmr = bia.bmr; bmrSrc = 'Ultima BIA'; }
+  else if(lbm){ bmr = 500 + 22 * lbm; bmrSrc = 'Cunningham'; }
+  else { bmr = 10*w + 6.25*p.height - 5*p.age + (p.sex==='F' ? -161 : 5); bmrSrc = 'Mifflin–St Jeor'; }
+
+  const act = Number(p.activity) || 1.3;
+  const baseTdee = bmr * act;
+
+  const sess = getNutDaySessions(iso);
+  let exKcal = 0, loadMin = 0;
+  const sessionList = [];
+  if(!sess.rest){
+    if(sess.corsa.dur > 0){
+      const kmh = sess.corsa.km > 0 ? sess.corsa.km / (sess.corsa.dur/60) : 9.5;
+      const met = runMET(kmh);
+      const kc = Math.max(0, (met - 1) * w * (sess.corsa.dur/60));
+      exKcal += kc; loadMin += sess.corsa.dur;
+      sessionList.push({disc:'corsa',lbl:'Corsa',dur:sess.corsa.dur,km:sess.corsa.km,kcal:Math.round(kc)});
+    }
+    if(sess.bici.dur > 0){
+      const kmh = sess.bici.km > 0 ? sess.bici.km / (sess.bici.dur/60) : 0;
+      const met = bikeMET(kmh, sess.bici.int);
+      const kc = Math.max(0, (met - 1) * w * (sess.bici.dur/60));
+      exKcal += kc; loadMin += sess.bici.dur;
+      sessionList.push({disc:'bici',lbl:'Bici',dur:sess.bici.dur,km:sess.bici.km,kcal:Math.round(kc)});
+    }
+    if(sess.nuoto.dur > 0){
+      const met = swimMET(sess.nuoto.int);
+      const kc = Math.max(0, (met - 1) * w * (sess.nuoto.dur/60));
+      exKcal += kc; loadMin += sess.nuoto.dur;
+      sessionList.push({disc:'nuoto',lbl:'Nuoto',dur:sess.nuoto.dur,km:0,kcal:Math.round(kc)});
+    }
+    if(sess.forza.dur > 0){
+      const met = strMET(sess.forza.int);
+      const kc = Math.max(0, (met - 1) * w * (sess.forza.dur/60));
+      exKcal += kc; loadMin += sess.forza.dur * 0.5;
+      sessionList.push({disc:'forza',lbl:'Rinforzo',dur:sess.forza.dur,km:0,kcal:Math.round(kc)});
+    }
+  }
+
+  const goalMult = p.nutGoal==='lose' ? 0.9 : p.nutGoal==='gain' ? 1.1 : 1.0;
+  let calcKcal = Math.round((baseTdee + exKcal) * goalMult);
+  let targetKcal = calcKcal, capDiff = 0;
+  if(p.kcalCap && p.kcalCap > 0 && p.kcalCap < calcKcal){
+    capDiff = calcKcal - p.kcalCap;
+    targetKcal = Math.round(p.kcalCap);
+  }
+
+  // Carb load tier
+  let carbRange, loadLabel;
+  if(loadMin <= 45){ carbRange=[3,5]; loadLabel='Leggero'; }
+  else if(loadMin <= 90){ carbRange=[5,7]; loadLabel='Moderato'; }
+  else if(loadMin <= 180){ carbRange=[6,10]; loadLabel='Endurance'; }
+  else if(loadMin <= 270){ carbRange=[7,10]; loadLabel='Endurance alto'; }
+  else { carbRange=[8,12]; loadLabel='Molto alto'; }
+
+  const protGkg = p.nutGoal === 'lose' ? 1.8 : 1.6;
+  const protG = Math.round(protGkg * w);
+  let fatKcal = targetKcal * 0.25;
+  let carbKcal = targetKcal - protG*4 - fatKcal;
+  let carbG = Math.round(carbKcal / 4);
+  let fatG = Math.round(fatKcal / 9);
+  const minCarbG = Math.round(carbRange[0] * w), maxCarbG = Math.round(carbRange[1] * w);
+  let macroNote = '';
+
+  if(carbG > maxCarbG){
+    const excessKcal = (carbG - maxCarbG) * 4;
+    const maxFatKcal = targetKcal * 0.35;
+    const newFatKcal = Math.min(maxFatKcal, fatKcal + excessKcal);
+    fatG = Math.round(newFatKcal / 9);
+    carbG = Math.round((targetKcal - protG*4 - newFatKcal) / 4);
+    macroNote = `Carboidrati limitati al tetto del giorno (${carbRange[1]} g/kg): quota extra spostata sui grassi (fino al 35%).`;
+  } else if(carbG < minCarbG){
+    const neededKcal = (minCarbG - carbG) * 4;
+    const minFatKcal = targetKcal * 0.20;
+    const newFatKcal = Math.max(minFatKcal, fatKcal - neededKcal);
+    fatG = Math.round(newFatKcal / 9);
+    carbG = Math.max(0, Math.round((targetKcal - protG*4 - newFatKcal) / 4));
+    macroNote = `Grassi ridotti verso il 20% per avvicinare i carboidrati al minimo del carico (${carbRange[0]} g/kg).`;
+  }
+
+  const ea = lbm ? +((targetKcal - exKcal) / lbm).toFixed(1) : null;
+  return {
+    missing:false, w, lbm, bmr:Math.round(bmr), bmrSrc, exKcal:Math.round(exKcal),
+    calcKcal, targetKcal, capDiff, loadMin, loadLabel, carbRange,
+    c:carbG, p:protG, f:fatG, protGkg, macroNote, ea, sess, sessionList
+  };
+}
+
+// Recipe resolver & weighted least squares portion optimizer
+function resolveRecipe(rec, userAllergens){
+  const algSet = new Set(userAllergens||[]);
+  const resolved = [];
+  for(const ing of rec.ings){
+    const chosenId = ing.o.find(id => !FOODS[id].alg.some(a => algSet.has(a)));
+    if(!chosenId) return null;
+    resolved.push({...ing, food: FOODS[chosenId]});
+  }
+  return {...rec, resolved};
+}
+
+function roundQty(food, grams){
+  if(grams <= 0) return 0;
+  if(food.unit === 'egg') return Math.max(55, Math.round(grams/55)*55);
+  if(food.unit === 'oil') return Math.round(grams/10)*10;
+  if(food.unit === 'ml') return Math.round(grams/10)*10;
+  if(grams >= 100) return Math.round(grams/10)*10;
+  return Math.round(grams/5)*5;
+}
+
+function formatQty(food, grams){
+  if(food.unit === 'egg'){
+    const n = Math.max(1, Math.round(grams/55));
+    return `${n} ${n===1?'uovo':'uova'} (${n*55} g)`;
+  }
+  if(food.unit === 'oil'){
+    const c = Math.round(grams/10);
+    return `${c} ${c===1?'cucchiaio':'cucchiai'} (${grams} g)`;
+  }
+  if(food.unit === 'ml') return `${grams} ml`;
+  return `${grams} g`;
+}
+
+function solvePortions(rec, target, hunger, dayKcal){
+  const vegBase = hunger==='tanta' ? 300 : hunger==='poca' ? 150 : 200;
+  const maxScale = dayKcal > 2800 ? dayKcal / 2800 : 1;
+
+  // Fixed nutrients
+  let fc=0, fp=0, ff=0;
+  const vars = [];
+  const fixedItems = [];
+  for(const ing of rec.resolved){
+    if(ing.fix){
+      const q = ing.fix;
+      fixedItems.push({ing, q});
+      fc += ing.food.c * q / 100; fp += ing.food.p * q / 100; ff += ing.food.f * q / 100;
+    } else if(ing.veg){
+      const q = Math.round((vegBase * ing.veg)/10)*10;
+      fixedItems.push({ing, q});
+      fc += ing.food.c * q / 100; fp += ing.food.p * q / 100; ff += ing.food.f * q / 100;
+    } else {
+      const mx = Math.round(ing.max * maxScale);
+      const mn = ing.min;
+      vars.push({ing, mn, mx, q: (mn+mx)/2});
+    }
+  }
+
+  // Coordinate descent on weighted least squares in kcal space: (4*dC)^2 + (4*dP)^2 + (9*dF)^2
+  const remC = target.c - fc, remP = target.p - fp, remF = target.f - ff;
+  for(let iter=0; iter<35; iter++){
+    for(let i=0; i<vars.length; i++){
+      let oc=0, op=0, of=0;
+      for(let j=0; j<vars.length; j++){
+        if(j===i) continue;
+        const f = vars[j].ing.food, q = vars[j].q / 100;
+        oc += f.c*q; op += f.p*q; of += f.f*q;
+      }
+      const f = vars[i].ing.food;
+      const ac = 4*f.c/100, ap = 4*f.p/100, af = 9*f.f/100;
+      const bc = 4*(remC - oc), bp = 4*(remP - op), bf = 9*(remF - of);
+      const denom = ac*ac + ap*ap + af*af;
+      if(denom > 1e-6){
+        let q = (ac*bc + ap*bp + af*bf) / denom;
+        vars[i].q = Math.max(vars[i].mn, Math.min(vars[i].mx, q));
+      }
+    }
+  }
+
+  // Build final rounded items
+  const items = [];
+  const roleNames = {};
+  for(const it of fixedItems){
+    items.push({role:it.ing.r, food:it.ing.food, q:it.q});
+    if(it.ing.r==='fix') roleNames.fix = it.ing.food.short;
+  }
+  for(const v of vars){
+    let rq = roundQty(v.ing.food, v.q);
+    if(v.mn > 0 && rq < v.mn) rq = roundQty(v.ing.food, v.mn);
+    if(rq > 0){
+      items.push({role:v.ing.r, food:v.ing.food, q:rq});
+      roleNames[v.ing.r] = v.ing.food.short;
+    }
+  }
+
+  // Dynamic title cleanup when a variable ingredient is 0g
+  let title = rec.t;
+  for(const k of ['carb','prot','fat','fix']){
+    if(roleNames[k]) title = title.replace(`{${k}}`, roleNames[k]);
+    else {
+      title = title.replace(new RegExp(`,?\\s*e\\s*\\{${k}\\}`, 'gi'), '')
+                   .replace(new RegExp(`\\{${k}\\},?\\s*(e\\s*)?`, 'gi'), '')
+                   .replace(new RegExp(`\\s+con\\s*$`, 'i'), '');
+    }
+  }
+  title = title.replace(/\s+,/g,',').replace(/\s{2,}/g,' ').replace(/^,\s*/,'').trim();
+  title = title.charAt(0).toUpperCase() + title.slice(1);
+
+  const tot = {kcal:0,c:0,p:0,f:0,fib:0};
+  for(const it of items){
+    tot.kcal += it.food.kcal * it.q / 100;
+    tot.c += it.food.c * it.q / 100;
+    tot.p += it.food.p * it.q / 100;
+    tot.f += it.food.f * it.q / 100;
+    tot.fib += it.food.fib * it.q / 100;
+  }
+  return {title, items, tot:{kcal:Math.round(tot.kcal), c:Math.round(tot.c), p:Math.round(tot.p), f:Math.round(tot.f), fib:Math.round(tot.fib)}, prep:rec.prep};
+}
+
+function buildMealSlots(nut){
+  const p = STATE.profile;
+  const nMeals = p.mealsCount || (p.hunger==='tanta' ? 5 : 4);
+  let slots;
+  if(nMeals === 3) slots = [{id:'col',lbl:'Colazione',type:'col',pct:.25},{id:'pranzo',lbl:'Pranzo',type:'main',pct:.40},{id:'cena',lbl:'Cena',type:'main',pct:.35}];
+  else if(nMeals === 5) slots = [{id:'col',lbl:'Colazione',type:'col',pct:.22},{id:'spu1',lbl:'Spuntino mattina',type:'spu',pct:.10},{id:'pranzo',lbl:'Pranzo',type:'main',pct:.30},{id:'spu2',lbl:'Spuntino pomeriggio',type:'spu',pct:.10},{id:'cena',lbl:'Cena',type:'main',pct:.28}];
+  else slots = [{id:'col',lbl:'Colazione',type:'col',pct:.25},{id:'pranzo',lbl:'Pranzo',type:'main',pct:.32},{id:'spu2',lbl:'Spuntino pomeriggio',type:'spu',pct:.13},{id:'cena',lbl:'Cena',type:'main',pct:.30}];
+
+  // Determine pre & post workout slots
+  const timing = nut.sess.rest ? 'none' : nut.sess.timing;
+  let preId = null, postId = null;
+  if(timing === 'presto'){ postId = 'col'; }
+  else if(timing === 'mattina_tardi'){ preId = 'col'; postId = 'pranzo'; }
+  else if(timing === 'pomeriggio'){ preId = slots.some(s=>s.id==='spu2') ? 'spu2' : 'pranzo'; postId = 'cena'; }
+
+  // Allocate target macros per slot
+  return slots.map(s => {
+    let c = nut.c * s.pct, pr = nut.p * s.pct, f = nut.f * s.pct;
+    const isPre = s.id === preId, isPost = s.id === postId;
+    if(isPre){
+      const movedFatKcal = (f * 0.5) * 9;
+      f = f * 0.5;
+      c = c + movedFatKcal / 4;
+    }
+    if(isPost){
+      pr = Math.max(pr, 0.25 * nut.w);
+    }
+    return {...s, isPre, isPost, target:{c, p:pr, f, kcal:Math.round(c*4+pr*4+f*9)}};
+  });
+}
+
+function getEligibleRecipes(slot){
+  const p = STATE.profile;
+  const maxCook = Number(p.cook ?? 1);
+  let list = RECIPES.filter(r => r.type === slot.type && r.cook <= maxCook)
+                    .map(r => resolveRecipe(r, p.allergens))
+                    .filter(Boolean);
+  if(slot.isPre){
+    const preOnly = list.filter(r => r.pre);
+    if(preOnly.length) list = preOnly;
+  }
+  // Sort by hunger preference & post-workout preference
+  list.sort((a,b) => {
+    if(slot.isPost && (b.post?1:0)!==(a.post?1:0)) return (b.post?1:0)-(a.post?1:0);
+    if(p.hunger === 'tanta') return b.sat - a.sat;
+    if(p.hunger === 'poca') return a.sat - b.sat;
+    return 0;
+  });
+  return list;
+}
+
+/* ============================================================================
+   4. SVG CHART GENERATORS
+   ============================================================================ */
+function svgStackedWeeks(weeksData){
+  const W=340, H=175, pl=34, pr=8, pt=22, pb=26;
+  const maxVal = Math.max(60, ...weeksData.map(w=>w.tot));
+  const step = Math.ceil(maxVal / 3 / 30) * 30 || 30;
+  const yMax = step * 3;
+  const cw = (W-pl-pr)/weeksData.length;
+  const bw = Math.min(28, cw*0.64);
+  let out = `<svg viewBox="0 0 ${W} ${H}">`;
+  for(let i=0;i<=3;i++){
+    const v = step*i, y = H-pb - (v/yMax)*(H-pt-pb);
+    out += `<line x1="${pl}" y1="${y}" x2="${W-pr}" y2="${y}" stroke="var(--border)" stroke-dasharray="2,3"/>`;
+    out += `<text x="${pl-5}" y="${y+3}" text-anchor="end" font-size="9" fill="var(--muted)">${v}</text>`;
+  }
+  const cols = [['corsa','#d9532b'],['bici','#1a8f7a'],['nuoto','#2f6fd0'],['forza','#5a4fa0']];
+  weeksData.forEach((w, idx) => {
+    const x = pl + idx*cw + (cw-bw)/2;
+    let curY = H-pb;
+    cols.forEach(([k,c]) => {
+      const v = w[k]||0; if(!v) return;
+      const h = (v/yMax)*(H-pt-pb);
+      curY -= h;
+      out += `<rect x="${x}" y="${curY}" width="${bw}" height="${h}" fill="${c}" rx="2"/>`;
+    });
+    if(w.tot>0) out += `<text x="${x+bw/2}" y="${curY-4}" text-anchor="middle" font-size="9" font-weight="700" fill="var(--text)">${w.tot}</text>`;
+    out += `<text x="${x+bw/2}" y="${H-9}" text-anchor="middle" font-size="9" fill="var(--muted)">${w.lbl}</text>`;
+  });
+  out += `</svg>`;
+  return out;
+}
+
+function svgBarChart(items, opts){
+  const W=340, H=155, pl=28, pr=10, pt=20, pb=24;
+  const yMax = Math.max(opts.minMax||8, ...items.map(i=>i.val));
+  const cw = (W-pl-pr)/items.length;
+  const bw = Math.min(26, cw*0.68);
+  let out = `<svg viewBox="0 0 ${W} ${H}">`;
+  if(opts.target){
+    const ty = H-pb - (opts.target/yMax)*(H-pt-pb);
+    out += `<line x1="${pl}" y1="${ty}" x2="${W-pr}" y2="${ty}" stroke="var(--primary)" stroke-width="1.4" stroke-dasharray="4,3"/>`;
+    out += `<text x="${W-pr}" y="${ty-4}" text-anchor="end" font-size="9" font-weight="700" fill="var(--primary)">${opts.targetLbl}</text>`;
+  }
+  items.forEach((it, idx) => {
+    const x = pl + idx*cw + (cw-bw)/2;
+    const h = Math.max(0, (it.val/yMax)*(H-pt-pb));
+    const y = H-pb-h;
+    if(it.val>0){
+      out += `<rect x="${x}" y="${y}" width="${bw}" height="${h}" fill="${it.col}" rx="3"/>`;
+      out += `<text x="${x+bw/2}" y="${y-3}" text-anchor="middle" font-size="9" font-weight="600" fill="var(--text)">${opts.dec?fmt(it.val,1):it.val}</text>`;
+    }
+    out += `<text x="${x+bw/2}" y="${H-8}" text-anchor="middle" font-size="8.5" fill="var(--muted)">${it.lbl}</text>`;
+  });
+  out += `</svg>`;
+  return out;
+}
+
+function svgLineChart(points, unit){
+  if(!points.length) return `<div class="muted">Nessun dato registrato.</div>`;
+  const W=340, H=150, pl=38, pr=16, pt=18, pb=24;
+  const vals = points.map(p=>p.v);
+  let mn = Math.min(...vals), mx = Math.max(...vals);
+  if(mn===mx){ mn-=1; mx+=1; }
+  const pad = (mx-mn)*0.15; mn-=pad; mx+=pad;
+  const xPos = i => points.length===1 ? (pl+W-pr)/2 : pl + (i/(points.length-1))*(W-pl-pr);
+  const yPos = v => H-pb - ((v-mn)/(mx-mn))*(H-pt-pb);
+  let out = `<svg viewBox="0 0 ${W} ${H}">`;
+  for(let i=0;i<=2;i++){
+    const v = mn + (mx-mn)*(i/2), y = yPos(v);
+    out += `<line x1="${pl}" y1="${y}" x2="${W-pr}" y2="${y}" stroke="var(--border)" stroke-dasharray="2,3"/>`;
+    out += `<text x="${pl-5}" y="${y+3}" text-anchor="end" font-size="9" fill="var(--muted)">${fmt(v,1)}${unit}</text>`;
+  }
+  if(points.length>1){
+    const d = points.map((p,i)=>`${i===0?'M':'L'}${xPos(i).toFixed(1)},${yPos(p.v).toFixed(1)}`).join(' ');
+    out += `<path d="${d}" fill="none" stroke="var(--primary)" stroke-width="2.2" stroke-linejoin="round"/>`;
+  }
+  points.forEach((p,i)=>{
+    const x=xPos(i), y=yPos(p.v), isLast=i===points.length-1;
+    out += `<circle cx="${x}" cy="${y}" r="${isLast?4.8:3}" fill="${isLast?'var(--corsa)':'var(--primary)'}" stroke="var(--surface)" stroke-width="1.5"/>`;
+    if(isLast) out += `<text x="${Math.min(W-14,x)}" y="${y-8}" text-anchor="${x>W-45?'end':'middle'}" font-size="10" font-weight="700" fill="var(--corsa)">${fmt(p.v,1)}${unit}</text>`;
+    if(i===0 || isLast || (points.length>4 && i===Math.floor(points.length/2))){
+      out += `<text x="${x}" y="${H-8}" text-anchor="middle" font-size="8.5" fill="var(--muted)">${p.lbl}</text>`;
+    }
+  });
+  out += `</svg>`;
+  return out;
+}
+
+/* ============================================================================
+   5. NAVIGATION & MODAL FRAMEWORK
+   ============================================================================ */
+function initNav(){
+  $('#drawerNav').innerHTML = NAV_ITEMS.map(n=>`
+    <button class="nav-item" data-route="${n.id}">
+      <svg viewBox="0 0 24 24">${n.ico}</svg>${n.lbl}
+    </button>`).join('');
+  $('#drawerNav').addEventListener('click', e => {
+    const btn = e.target.closest('.nav-item');
+    if(!btn) return;
+    location.hash = '#' + btn.dataset.route;
+    closeDrawer();
+  });
+  $('#openDrawerBtn').onclick = openDrawer;
+  $('#closeDrawerBtn').onclick = closeDrawer;
+  $('#drawerBackdrop').onclick = closeDrawer;
+  $('#modalBg').addEventListener('click', e => { if(e.target===$('#modalBg')) closeModal(); });
+  document.addEventListener('keydown', e => { if(e.key==='Escape'){ closeDrawer(); closeModal(); } });
+  window.addEventListener('hashchange', syncRoute);
+  syncRoute();
+}
+
+function openDrawer(){ $('#drawer').classList.add('open'); $('#drawerBackdrop').classList.add('open'); }
+function closeDrawer(){ $('#drawer').classList.remove('open'); $('#drawerBackdrop').classList.remove('open'); }
+function openModal(html){ $('#modalBox').innerHTML = html; $('#modalBg').classList.add('open'); }
+function closeModal(){ $('#modalBg').classList.remove('open'); }
+
+function syncRoute(){
+  const h = (location.hash||'#settimana').replace('#','').toLowerCase();
+  const valid = NAV_ITEMS.find(n=>n.id===h);
+  currentRoute = valid ? valid.id : 'settimana';
+  $('#topbarTitle').textContent = (valid || NAV_ITEMS[0]).lbl;
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.route === currentRoute));
+  render();
+  window.scrollTo(0,0);
+}
+
+function toggleCol(btn){ btn.closest('.col-card').classList.toggle('open'); }
+
+function render(){
+  const views = {
+    settimana: renderSettimana, storico: renderStorico, nutrizione: renderNutrizione,
+    guida: renderGuida, sonno: renderSonno, gare: renderGare, profilo: renderProfilo
+  };
+  $('#app').innerHTML = (views[currentRoute] || renderSettimana)();
+}
+
+/* ============================================================================
+   6. SECTION 1: SETTIMANA
+   ============================================================================ */
+function renderSettimana(){
+  const today = todayISO();
+  // Target race countdown
+  const race = STATE.races.find(r=>r.id===STATE.profile.targetRaceId);
+  let cdHtml = '';
+  if(race){
+    const dd = diffDays(today, race.date);
+    const w = Math.floor(Math.max(0,dd)/7), d = Math.max(0,dd)%7;
+    const txt = dd < 0 ? 'Gara conclusa' : `${w} sett. ${d} gg`;
+    cdHtml = `<div class="cd-banner" onclick="location.hash='#gare'">
+      <div><div class="cd-t">${txt} · ${esc(race.name)}</div><div class="sm" style="opacity:.9">${fmtDateFull(race.date)} · ${esc(race.place)}</div></div>
+      <span style="font-size:20px">›</span>
+    </div>`;
+  } else {
+    cdHtml = `<div class="card row-sb" onclick="location.hash='#gare'" style="cursor:pointer">
+      <div><b class="ft" style="font-size:18px">Nessuna gara obiettivo</b><div class="muted">Scegli una gara per il conto alla rovescia</div></div>
+      <span class="btn btn-sm btn-p">Scegli</span>
+    </div>`;
+  }
+
+  // Morning Semaforo
+  const sem = calcSemaforo(today);
+  let semHtml;
+  if(sem.color === 'none'){
+    semHtml = `<div class="card row-sb">
+      <div><b class="ft" style="font-size:19px">Semaforo del mattino</b><div class="muted">${sem.msg}</div></div>
+      <button class="btn btn-sm btn-p" onclick="location.hash='#sonno'">Sonno</button>
+    </div>`;
+  } else {
+    const dotCls = sem.color==='green'?'sem-g':sem.color==='yellow'?'sem-y':'sem-r';
+    const lbl = sem.color==='green'?'Verde':sem.color==='yellow'?'Giallo':'Rosso';
+    semHtml = `<div class="card">
+      <div class="sem-wrap">
+        <div class="sem-dot ${dotCls}"></div>
+        <div style="flex:1">
+          <div class="row-sb"><b class="ft" style="font-size:19px">Semaforo: ${lbl}</b><span class="muted">${fmtDateShort(today)}</span></div>
+          <div style="font-size:14px;margin-top:3px">${esc(sem.msg)}</div>
+          ${sem.reasons.length ? `<div class="row mt8">${sem.reasons.map(r=>`<span class="chip ${sem.color==='red'?'chip-d':'chip-w'}">${esc(r)}</span>`).join('')}</div>`:''}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // Weeks selection
+  STATE.weeks.sort((a,b)=>a.start.localeCompare(b.start));
+  if(selectedWeekIdx >= STATE.weeks.length) selectedWeekIdx = Math.max(0, STATE.weeks.length-1);
+  const wk = STATE.weeks[selectedWeekIdx];
+
+  let pSess=0, dSess=0, pRunKm=0, dRunKm=0, pMin=0, dMin=0;
+  (wk?.days||[]).forEach(day => {
+    const log = STATE.logs[day.date];
+    const isActive = day.type !== 'riposo';
+    if(isActive){
+      pSess++;
+      const planDur = day.type==='brick' ? ((day.bikeDur||0)+(day.runDur||0) || day.dur || 0) : (day.dur||0);
+      pMin += planDur;
+      if(day.type==='corsa' || day.type==='brick') pRunKm += (day.km||0);
+    }
+    if(log && log.done){
+      dSess++;
+      const lDur = day.type==='brick' ? ((log.bikeDur||0)+(log.runDur||0)) : (log.dur||0);
+      dMin += lDur;
+      if(day.type==='corsa') dRunKm += (log.km||0);
+      if(day.type==='brick') dRunKm += (log.runKm||0);
+    }
+  });
+  const pct = (a,b) => b>0 ? Math.min(100, Math.round((a/b)*100)) : 0;
+
+  const daysHtml = (wk?.days||[]).map(day => {
+    const log = STATE.logs[day.date];
+    const isToday = day.date === today;
+    const done = !!(log && log.done);
+    const durShow = done ? (day.type==='brick' ? (log.bikeDur||0)+(log.runDur||0) : (log.dur||0))
+                         : (day.type==='brick' ? ((day.bikeDur||0)+(day.runDur||0)||day.dur||0) : (day.dur||0));
+    const runKm = day.type==='corsa' ? (done?(log.km||0):(day.km||0))
+                : day.type==='brick' ? (done?(log.runKm||0):(day.km||0)) : 0;
+    const warn = getLongRunWarning(day.date, runKm);
+    const kmTxt = day.type==='brick'
+      ? (done ? `${fmt(log.bikeKm||0,1)} km bici · ${fmt(log.runKm||0,1)} km corsa` : (day.km?`${fmt(day.km,1)} km corsa`:''))
+      : (done && log.km ? `${fmt(log.km,1)} km` : (day.km ? `${fmt(day.km,1)} km` : ''));
+    return `<div class="day-card ${day.type}" onclick="openDayModal('${day.date}')">
+      <div style="min-width:0;flex:1">
+        <div class="row" style="gap:6px">
+          <span class="sm muted" style="font-weight:700">${fmtDateShort(day.date)}</span>
+          ${isToday?'<span class="chip chip-p">Oggi</span>':''}
+          ${done?'<span class="chip chip-ok">Fatto</span>':''}
+          ${warn?`<span class="chip chip-w">⚠ +${warn.pct}% sul lungo</span>`:''}
+        </div>
+        <div class="day-title">${esc(day.title)}</div>
+        <div class="day-sub">${[day.time, durShow?`${durShow} min`:'', kmTxt].filter(Boolean).join(' · ')}</div>
+      </div>
+      <span class="muted" style="font-size:20px">›</span>
+    </div>`;
+  }).join('');
+
+  const fbVal = wk ? (STATE.feedback[wk.start] || '') : '';
+
+  return `${cdHtml}${semHtml}
+  <div class="card">
+    <div class="row-sb mb8">
+      <button class="btn btn-sm" ${selectedWeekIdx<=0?'disabled style="opacity:.4"':''} onclick="changeWeek(-1)">‹</button>
+      <div style="text-align:center;flex:1">
+        <h2 style="font-size:20px">${esc(wk?wk.title:'Nessuna settimana')}</h2>
+        <div class="muted">${wk?`Dal ${fmtDateFull(wk.start)}`:''}</div>
+      </div>
+      <button class="btn btn-sm" ${selectedWeekIdx>=STATE.weeks.length-1?'disabled style="opacity:.4"':''} onclick="changeWeek(1)">›</button>
+    </div>
+    <div class="pbar"><div class="pbar-h"><span>Sedute</span><span>${dSess} / ${pSess}</span></div><div class="pbar-t"><div class="pbar-f" style="width:${pct(dSess,pSess)}%;background:var(--ok)"></div></div></div>
+    <div class="pbar"><div class="pbar-h"><span>Km corsa</span><span>${fmt(dRunKm,1)} / ${fmt(pRunKm,1)} km</span></div><div class="pbar-t"><div class="pbar-f" style="width:${pct(dRunKm,pRunKm)}%;background:var(--corsa)"></div></div></div>
+    <div class="pbar"><div class="pbar-h"><span>Minuti totali</span><span>${dMin} / ${pMin} min</span></div><div class="pbar-t"><div class="pbar-f" style="width:${pct(dMin,pMin)}%"></div></div></div>
+    <div class="mt8"><button class="btn btn-sm btn-blk" onclick="openImportWeekModal()">+ Importa settimana (JSON)</button></div>
+  </div>
+  ${daysHtml}
+  ${wk ? `<div class="card">
+    <div class="card-hd"><h3>Com'è andata la settimana</h3></div>
+    <div class="fld"><textarea id="weekFeedbackTxt" placeholder="Sensazioni, fatica, eventuali imprevisti...">${esc(fbVal)}</textarea></div>
+    <button class="btn btn-p btn-sm mt8" onclick="saveWeekFeedback('${wk.start}')">Salva feedback</button>
+  </div>` : ''}`;
+}
+
+function changeWeek(delta){
+  selectedWeekIdx = Math.max(0, Math.min(STATE.weeks.length-1, selectedWeekIdx+delta));
+  render();
+}
+
+function saveWeekFeedback(start){
+  STATE.feedback[start] = $('#weekFeedbackTxt').value.trim();
+  saveState(); toast('Feedback settimana salvato');
+}
+
+function renderSteps(steps){
+  if(!steps || !steps.length) return '';
+  let html = '<ol class="steps-ol">';
+  for(let i=0;i<steps.length;i++){
+    if(Array.isArray(steps[i])) continue;
+    html += `<li>${esc(steps[i])}`;
+    if(Array.isArray(steps[i+1])){
+      html += `<ul>${steps[i+1].map(s=>`<li>${esc(s)}</li>`).join('')}</ul>`;
+    }
+    html += `</li>`;
+  }
+  return html + '</ol>';
+}
+
+function openDayModal(iso){
+  const day = findDayPlan(iso); if(!day) return;
+  const log = STATE.logs[iso] || {};
+  const sleep = STATE.sleep.find(s=>s.date===iso);
+  const isBrick = day.type === 'brick';
+  const isRun = day.type === 'corsa';
+  const activeShoes = STATE.shoes.filter(s=>!s.retired || s.id===log.shoeId);
+  const runKmCheck = isRun ? (log.done?(log.km||0):(day.km||0)) : isBrick ? (log.done?(log.runKm||0):(day.km||0)) : 0;
+  const warn = getLongRunWarning(iso, runKmCheck);
+  const rpeVal = log.rpe || day.rpe || 5;
+
+  openModal(`
+    <div class="modal-hd">
+      <div>
+        <div class="muted">${fmtDateShort(iso)} ${day.time?'· '+day.time:''}</div>
+        <h2 style="font-size:23px">${esc(day.title)} ${warn?`<span class="chip chip-w">⚠ +${warn.pct}% sul lungo</span>`:''}</h2>
+      </div>
+      <button class="menu-btn" onclick="closeModal()">✕</button>
+    </div>
+    ${sleep ? `<div class="alert ${sleep.hours<6?'alert-d':'alert-ok'} mb8">
+      <b>Sonno: ${fmt(sleep.hours,1)} h ${sleep.quality?`· Qualità ${sleep.quality}/5`:''} ${sleep.rhr?`· FC ${sleep.rhr}`:''}</b>
+      ${sleep.hours<6 ? 'Seduta più leggera consigliata.' : ''}
+    </div>` : ''}
+    ${warn ? `<div class="alert alert-w mb8"><b>Avviso corsa lunga (+${warn.pct}%)</b>Più lunga negli ultimi 30 gg: ${fmt(warn.max30,1)} km. Resta entro circa il +10% per ridurre il rischio di infortuni.</div>` : ''}
+    <div class="row mb8">
+      ${day.fc?`<span class="chip chip-p">Target FC: ${esc(day.fc)}</span>`:''}
+      ${day.rpe?`<span class="chip">Fatica attesa: ${day.rpe}/10</span>`:''}
+      ${day.meteo?`<span class="chip">Meteo: ${esc(day.meteo)}</span>`:''}
+      ${day.impegni?`<span class="chip">Impegni: ${esc(day.impegni)}</span>`:''}
+    </div>
+    ${day.steps?.length ? `<div class="card mb8" style="background:var(--surface-alt)"><b class="ft" style="font-size:17px">Passi della seduta</b>${renderSteps(day.steps)}</div>` : ''}
+    <div class="card">
+      <b class="ft" style="font-size:18px;display:block;margin-bottom:6px">Registrazione seduta</b>
+      <label class="chk mb8"><input type="checkbox" id="mDone" ${log.done?'checked':''}> Seduta fatta</label>
+      ${isBrick ? `
+        <div class="g2">
+          <div class="fld"><label>Km bici</label><input type="number" step="0.1" id="mBikeKm" value="${log.bikeKm??day.bikeKm??''}"></div>
+          <div class="fld"><label>Minuti bici</label><input type="number" id="mBikeDur" value="${log.bikeDur??day.bikeDur??''}" oninput="updModalPace()"></div>
+          <div class="fld"><label>Minuti corsa</label><input type="number" id="mRunDur" value="${log.runDur??day.runDur??''}" oninput="updModalPace()"></div>
+          <div class="fld"><label>Km corsa</label><input type="number" step="0.1" id="mRunKm" value="${log.runKm??day.km??''}" oninput="updModalPace()"></div>
+        </div>
+        <div class="muted mt8" id="mPaceBox">Durata totale: ${((log.bikeDur??day.bikeDur??0)+(log.runDur??day.runDur??0))} min · Passo corsa: ${fmtPace(log.runDur??day.runDur, log.runKm??day.km)}</div>
+      ` : `
+        <div class="g2">
+          <div class="fld"><label>Durata (min)</label><input type="number" id="mDur" value="${log.dur??day.dur??''}" oninput="updModalPace()"></div>
+          <div class="fld"><label>Distanza (km)</label><input type="number" step="0.1" id="mKm" value="${log.km??day.km??''}" oninput="updModalPace()"></div>
+        </div>
+        ${isRun ? `<div class="muted mt8" id="mPaceBox">Passo: ${fmtPace(log.dur??day.dur, log.km??day.km)}</div>` : ''}
+      `}
+      ${(isRun || isBrick) ? `<div class="fld mt8"><label>Scarpe usate</label>
+        <select id="mShoe"><option value="">— Nessuna —</option>${activeShoes.map(s=>`<option value="${s.id}" ${log.shoeId===s.id?'selected':''}>${esc(s.model)}</option>`).join('')}</select>
+      </div>` : ''}
+      <div class="fld mt8">
+        <label>Fatica (1–10): <b id="mRpeVal">${rpeVal}</b> — <span id="mRpeTxt">${RPE_DESC[rpeVal]}</span></label>
+        <input type="range" min="1" max="10" id="mRpe" value="${rpeVal}" oninput="$('#mRpeVal').textContent=this.value;$('#mRpeTxt').textContent=RPE_DESC[this.value]">
+      </div>
+      <div class="fld mt8"><label>Note</label><textarea id="mNotes" placeholder="Come ti sei sentito, FC media...">${esc(log.notes||'')}</textarea></div>
+      <button class="btn btn-p btn-blk mt12" onclick="saveDayLog('${iso}','${day.type}')">Salva</button>
+    </div>
+  `);
+}
+
+function updModalPace(){
+  const box = $('#mPaceBox'); if(!box) return;
+  if($('#mBikeDur')){
+    const bd = parseNum($('#mBikeDur').value)||0, rd = parseNum($('#mRunDur').value)||0, rk = parseNum($('#mRunKm').value)||0;
+    box.textContent = `Durata totale: ${bd+rd} min · Passo corsa: ${fmtPace(rd, rk)}`;
+  } else {
+    box.textContent = `Passo: ${fmtPace(parseNum($('#mDur').value), parseNum($('#mKm').value))}`;
+  }
+}
+
+function saveDayLog(iso, type){
+  const isBrick = type==='brick';
+  const rec = {
+    done: $('#mDone').checked,
+    rpe: Number($('#mRpe').value),
+    notes: $('#mNotes').value.trim(),
+    shoeId: $('#mShoe') ? $('#mShoe').value : ''
+  };
+  if(isBrick){
+    rec.bikeKm = parseNum($('#mBikeKm').value)||0;
+    rec.bikeDur = parseNum($('#mBikeDur').value)||0;
+    rec.runDur = parseNum($('#mRunDur').value)||0;
+    rec.runKm = parseNum($('#mRunKm').value)||0;
+    rec.dur = rec.bikeDur + rec.runDur;
+  } else {
+    rec.dur = parseNum($('#mDur').value)||0;
+    rec.km = parseNum($('#mKm').value)||0;
+  }
+  STATE.logs[iso] = rec;
+  saveState(); closeModal(); render(); toast('Seduta salvata');
+}
+
+function openImportWeekModal(){
+  const sample = JSON.stringify({start:addDays(getMonday(todayISO()),7),title:"Settimana prossima",note:"",days:[{date:addDays(getMonday(todayISO()),7),type:"corsa",title:"Corsa facile",time:"07:00",dur:40,km:6.5,fc:"Z2",rpe:4,meteo:"",impegni:"",steps:["10 min Z1","30 min Z2"]}]},null,2);
+  openModal(`
+    <div class="modal-hd"><h2 style="font-size:22px">Importa settimana (JSON)</h2><button class="menu-btn" onclick="closeModal()">✕</button></div>
+    <div class="fld"><label>Incolla il JSON della settimana preparato dall'assistente</label>
+      <textarea id="impWkTxt" style="min-height:170px;font-family:monospace;font-size:13px" placeholder='${esc(sample)}'></textarea>
+    </div>
+    <button class="btn btn-p btn-blk mt12" onclick="doImportWeek()">Importa settimana</button>
+  `);
+}
+
+function doImportWeek(){
+  try {
+    const obj = JSON.parse($('#impWkTxt').value.trim());
+    const arr = Array.isArray(obj) ? obj : [obj];
+    arr.forEach(w => {
+      if(!w.start || !Array.isArray(w.days)) throw new Error();
+      const idx = STATE.weeks.findIndex(x=>x.start===w.start);
+      if(idx>=0) STATE.weeks[idx] = w; else STATE.weeks.push(w);
+    });
+    STATE.weeks.sort((a,b)=>a.start.localeCompare(b.start));
+    selectedWeekIdx = STATE.weeks.length - 1;
+    saveState(); closeModal(); render(); toast('Settimana importata');
+  } catch(e){ toast('JSON non valido: controlla la sintassi'); }
+}
+
+/* ============================================================================
+   7. SECTION 2: STORICO
+   ============================================================================ */
+function renderStorico(){
+  const entries = Object.entries(STATE.logs).filter(([,l])=>l.done).map(([date,log])=>{
+    const plan = findDayPlan(date) || {type:'corsa', title:'Seduta'};
+    const dur = plan.type==='brick' ? ((log.bikeDur||0)+(log.runDur||0)) : (log.dur||0);
+    const runKm = plan.type==='corsa' ? (log.km||0) : plan.type==='brick' ? (log.runKm||0) : 0;
+    return {date, log, plan, dur, runKm};
+  }).sort((a,b)=>b.date.localeCompare(a.date));
+
+  const totSess = entries.length;
+  const totRunKm = entries.reduce((a,e)=>a+e.runKm,0);
+  const totHrs = entries.reduce((a,e)=>a+e.dur,0)/60;
+
+  // Last 8 Mondays
+  const curMon = getMonday(todayISO());
+  const weeks8 = [];
+  for(let i=7;i>=0;i--){
+    const mon = addDays(curMon, -i*7);
+    const sun = addDays(mon, 6);
+    const bucket = {mon, lbl:mon.slice(8)+'/'+mon.slice(5,7), corsa:0, bici:0, nuoto:0, forza:0, tot:0};
+    entries.filter(e=>e.date>=mon && e.date<=sun).forEach(e=>{
+      const t = e.plan.type;
+      if(t==='brick'){ bucket.bici += (e.log.bikeDur||0); bucket.corsa += (e.log.runDur||0); }
+      else if(bucket[t]!=null) bucket[t] += e.dur;
+    });
+    bucket.tot = bucket.corsa + bucket.bici + bucket.nuoto + bucket.forza;
+    weeks8.push(bucket);
+  }
+
+  // Group by week Monday
+  const grouped = {};
+  entries.forEach(e => { const m = getMonday(e.date); (grouped[m] = grouped[m]||[]).push(e); });
+  const listHtml = Object.keys(grouped).sort().reverse().map(mon => `
+    <div class="card">
+      <div class="card-hd"><h3>Settimana del ${fmtDateFull(mon)}</h3><span class="chip">${grouped[mon].length} sedute</span></div>
+      ${grouped[mon].map(e => {
+        const kmStr = e.plan.type==='brick' ? `${fmt(e.log.bikeKm||0,1)} km bici + ${fmt(e.log.runKm||0,1)} km corsa`
+                    : (e.log.km ? `${fmt(e.log.km,1)} km` : '');
+        const paceStr = e.plan.type==='corsa' ? fmtPace(e.log.dur, e.log.km)
+                      : e.plan.type==='brick' ? fmtPace(e.log.runDur, e.log.runKm) : '';
+        return `<div style="padding:8px 0;border-bottom:1px solid var(--border)">
+          <div class="row-sb"><b>${fmtDateShort(e.date)} · ${esc(e.plan.title)}</b><span class="chip">RPE ${e.log.rpe||'—'}</span></div>
+          <div class="muted">${[e.dur?`${e.dur} min`:'', kmStr, paceStr!=='—'?paceStr:''].filter(Boolean).join(' · ')}</div>
+          ${e.log.notes?`<div class="sm mt8">${esc(e.log.notes)}</div>`:''}
+        </div>`;
+      }).join('')}
+    </div>`).join('') || `<div class="card muted">Nessuna seduta registrata finora.</div>`;
+
+  return `
+    <div class="g3">
+      <div class="kpi"><div class="kpi-v">${totSess}</div><div class="kpi-l">Sedute fatte</div></div>
+      <div class="kpi"><div class="kpi-v" style="color:var(--corsa)">${fmt(totRunKm,1)}</div><div class="kpi-l">Km corsa</div></div>
+      <div class="kpi"><div class="kpi-v" style="color:var(--primary)">${fmt(totHrs,1)}</div><div class="kpi-l">Ore totali</div></div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><h3>Minuti per disciplina (ultime 8 settimane)</h3></div>
+      <div class="svg-box">${svgStackedWeeks(weeks8)}</div>
+      <div class="row mt8" style="justify-content:center;font-size:12px">
+        <span><b style="color:var(--corsa)">■</b> Corsa</span>
+        <span><b style="color:var(--bici)">■</b> Bici</span>
+        <span><b style="color:var(--nuoto)">■</b> Nuoto</span>
+        <span><b style="color:var(--forza)">■</b> Rinforzo</span>
+      </div>
+    </div>
+    ${listHtml}`;
+}
+
+/* ============================================================================
+   8. SECTION 3: NUTRIZIONE
+   ============================================================================ */
+function renderNutrizione(){
+  const iso = nutSelectedDate;
+  const nut = calcNutrition(iso);
+  const sess = getNutDaySessions(iso);
+
+  // Closed summary for daily workouts
+  const sumParts = [];
+  if(sess.rest) sumParts.push('Riposo');
+  else {
+    if(sess.corsa.dur) sumParts.push(`Corsa ${sess.corsa.dur} min${sess.corsa.km?` · ${fmt(sess.corsa.km,1)} km`:''}`);
+    if(sess.bici.dur) sumParts.push(`Bici ${sess.bici.dur} min${sess.bici.km?` · ${fmt(sess.bici.km,1)} km`:''}`);
+    if(sess.nuoto.dur) sumParts.push(`Nuoto ${sess.nuoto.dur} min`);
+    if(sess.forza.dur) sumParts.push(`Rinforzo ${sess.forza.dur} min`);
+  }
+  const dayLbl = iso === todayISO() ? 'Oggi' : fmtDateShort(iso);
+  const bikeKmh = (sess.bici.dur && sess.bici.km) ? sess.bici.km/(sess.bici.dur/60) : 0;
+
+  const workoutsBox = `<div class="col-card">
+    <button class="col-btn" onclick="toggleCol(this)">
+      <div class="col-meta">
+        <div class="col-t">Allenamenti del giorno</div>
+        <div class="col-s">${dayLbl} · ${sumParts.join(' + ') || 'Riposo'}</div>
+      </div><span class="col-arr">▾</span>
+    </button>
+    <div class="col-body">
+      <div class="g2 mb8">
+        <div class="fld"><label>Giorno</label><input type="date" value="${iso}" onchange="nutSelectedDate=this.value;render()"></div>
+        <div class="fld"><label>Quando ti alleni</label>
+          <select onchange="updNutSess('timing',this.value)">
+            <option value="none" ${sess.timing==='none'?'selected':''}>Non mi alleno</option>
+            <option value="presto" ${sess.timing==='presto'?'selected':''}>Mattina presto prima di colazione</option>
+            <option value="mattina_tardi" ${sess.timing==='mattina_tardi'?'selected':''}>Tra colazione e pranzo</option>
+            <option value="pomeriggio" ${sess.timing==='pomeriggio'?'selected':''}>Pomeriggio o sera prima di cena</option>
+          </select>
+        </div>
+      </div>
+      <label class="chk mb8"><input type="checkbox" ${sess.rest?'checked':''} onchange="updNutSess('rest',this.checked)"> Riposo</label>
+      ${!sess.rest ? `
+        <div class="g2 mb8">
+          <div class="fld"><label>Corsa (min)</label><input type="number" value="${sess.corsa.dur||''}" onchange="updNutSess('corsa.dur',this.value)"></div>
+          <div class="fld"><label>Corsa (km) ${sess.corsa.dur&&sess.corsa.km?`· ${fmtPace(sess.corsa.dur,sess.corsa.km)}`:''}</label><input type="number" step="0.1" value="${sess.corsa.km||''}" onchange="updNutSess('corsa.km',this.value)"></div>
+          <div class="fld"><label>Bici (min)</label><input type="number" value="${sess.bici.dur||''}" onchange="updNutSess('bici.dur',this.value)"></div>
+          <div class="fld"><label>Bici (km) ${bikeKmh?`· ${fmt(bikeKmh,1)} km/h`:''}</label><input type="number" step="0.1" value="${sess.bici.km||''}" onchange="updNutSess('bici.km',this.value)"></div>
+          ${!sess.bici.km ? `<div class="fld full"><label>Intensità bici</label>
+            <select onchange="updNutSess('bici.int',this.value)">
+              <option value="facile" ${sess.bici.int==='facile'?'selected':''}>Facile (&lt; 19 km/h)</option>
+              <option value="moderata" ${sess.bici.int==='moderata'?'selected':''}>Moderata (19–22 km/h)</option>
+              <option value="sostenuta" ${sess.bici.int==='sostenuta'?'selected':''}>Sostenuta (22–26 km/h)</option>
+              <option value="gara" ${sess.bici.int==='gara'?'selected':''}>Ritmo gara (26–31 km/h)</option>
+            </select></div>`:''}
+          <div class="fld"><label>Nuoto (min)</label><input type="number" value="${sess.nuoto.dur||''}" onchange="updNutSess('nuoto.dur',this.value)"></div>
+          <div class="fld"><label>Intensità nuoto</label>
+            <select onchange="updNutSess('nuoto.int',this.value)">
+              <option value="lento" ${sess.nuoto.int==='lento'?'selected':''}>Lento</option>
+              <option value="medio" ${sess.nuoto.int==='medio'?'selected':''}>Medio (~45 m/min)</option>
+              <option value="veloce" ${sess.nuoto.int==='veloce'?'selected':''}>Veloce (~70 m/min)</option>
+            </select>
+          </div>
+          <div class="fld"><label>Rinforzo (min)</label><input type="number" value="${sess.forza.dur||''}" onchange="updNutSess('forza.dur',this.value)"></div>
+          <div class="fld"><label>Intensità rinforzo</label>
+            <select onchange="updNutSess('forza.int',this.value)">
+              <option value="moderata" ${sess.forza.int==='moderata'?'selected':''}>Moderata (8–15 rip.)</option>
+              <option value="intensa" ${sess.forza.int==='intensa'?'selected':''}>Intensa (carichi pesanti)</option>
+            </select>
+          </div>
+        </div>`:''}
+      ${sess.isManual ? `<button class="btn btn-sm btn-blk" onclick="delete STATE.nutOverrides['${iso}'];saveState();render()">Riprendi i dati dal piano</button>` : ''}
+    </div>
+  </div>`;
+
+  // Fabbisogno + Piano pasti + Durante le sedute
+  let mainNutHtml = '';
+  if(nut.missing){
+    mainNutHtml = `<div class="alert alert-w"><b>Profilo incompleto</b>Inserisci sesso, età, peso e altezza nel Profilo per calcolare fabbisogno e piano pasti.
+      <button class="btn btn-sm btn-p mt8" onclick="location.hash='#profilo'">Vai al Profilo</button></div>`;
+  } else {
+    const cPct = Math.round((nut.c*4/nut.targetKcal)*100);
+    const pPct = Math.round((nut.p*4/nut.targetKcal)*100);
+    const fPct = Math.max(0, 100 - cPct - pPct);
+
+    // Meal plan
+    const slots = buildMealSlots(nut);
+    STATE.mealChoices[iso] = STATE.mealChoices[iso] || {};
+    const cheats = STATE.cheatMeals[iso] || {};
+    let usedLunchId = null;
+    const planTot = {kcal:0, c:0, p:0, f:0, fib:0};
+    let hasCheat = false;
+
+    const mealsHtml = slots.map(slot => {
+      const cheat = cheats[slot.id];
+      if(cheat){
+        hasCheat = true;
+        planTot.kcal += (cheat.kcal||0); planTot.c += (cheat.c||0); planTot.p += (cheat.p||0); planTot.f += (cheat.f||0); planTot.fib += (cheat.fib||0);
+        return `<div class="meal-card">
+          <div class="row-sb mb8">
+            <div><span class="chip chip-w">${slot.lbl} · Pasto sgarro</span><div class="muted mt8">Spazio pasto: ~${slot.target.kcal} kcal</div></div>
+            <button class="btn btn-sm" onclick="cancelCheat('${iso}','${slot.id}')">Torna al piano</button>
+          </div>
+          <div class="fld mb8"><label>Cosa hai mangiato</label><textarea id="chTxt_${slot.id}" placeholder="Es. pizza margherita, birra media, tiramisù...">${esc(cheat.text||'')}</textarea></div>
+          ${hasAI() ? `<button class="btn btn-p btn-sm mb8" onclick="estimateCheatAI('${iso}','${slot.id}')">Calcola calorie e valori (IA)</button>`
+                    : `<div class="muted mb8">Inserisci i valori stimati (inserimento manuale attivo):</div>`}
+          <div class="g3 mb8">
+            <div class="fld"><label>Kcal</label><input type="number" id="chK_${slot.id}" value="${cheat.kcal||''}"></div>
+            <div class="fld"><label>Carbo (g)</label><input type="number" id="chC_${slot.id}" value="${cheat.c||''}"></div>
+            <div class="fld"><label>Prot (g)</label><input type="number" id="chP_${slot.id}" value="${cheat.p||''}"></div>
+            <div class="fld"><label>Grassi (g)</label><input type="number" id="chF_${slot.id}" value="${cheat.f||''}"></div>
+            <div class="fld"><label>Fibre (g)</label><input type="number" id="chFib_${slot.id}" value="${cheat.fib||''}"></div>
+          </div>
+          <button class="btn btn-p btn-sm" onclick="saveCheatManual('${iso}','${slot.id}')">Salva valori pasto</button>
+        </div>`;
+      }
+
+      let eligible = getEligibleRecipes(slot);
+      if(slot.id === 'cena' && usedLunchId && eligible.length > 1){
+        eligible = eligible.filter(r => r.id !== usedLunchId);
+      }
+      if(!eligible.length){
+        return `<div class="meal-card"><b>${slot.lbl}</b><div class="muted">Nessuna ricetta compatibile con filtri/allergie.</div></div>`;
+      }
+      let chosenId = STATE.mealChoices[iso][slot.id];
+      let rec = eligible.find(r => r.id === chosenId) || eligible[0];
+      if(slot.id === 'pranzo') usedLunchId = rec.id;
+      if(STATE.mealChoices[iso][slot.id] !== rec.id){ STATE.mealChoices[iso][slot.id] = rec.id; saveState(); }
+
+      const solved = solvePortions(rec, slot.target, STATE.profile.hunger, nut.targetKcal);
+      planTot.kcal += solved.tot.kcal; planTot.c += solved.tot.c; planTot.p += solved.tot.p; planTot.f += solved.tot.f; planTot.fib += solved.tot.fib;
+
+      return `<div class="meal-card">
+        <div class="row-sb">
+          <div class="row" style="gap:5px">
+            <span class="chip chip-p">${slot.lbl}</span>
+            ${slot.isPre?'<span class="chip chip-w">Prima dell\'allenamento: pochi grassi e fibre</span>':''}
+            ${slot.isPost?'<span class="chip chip-ok">Dopo l\'allenamento</span>':''}
+          </div>
+          <b class="ft" style="font-size:19px">${solved.tot.kcal} kcal</b>
+        </div>
+        <div style="font-weight:700;font-size:16px;margin-top:5px">${esc(solved.title)}</div>
+        <ul class="ing-list">${solved.items.map(it=>`<li><span>${esc(it.food.name)}</span><b>${formatQty(it.food, it.q)}</b></li>`).join('')}</ul>
+        <div class="muted sm">C ${solved.tot.c} g · P ${solved.tot.p} g · G ${solved.tot.f} g · Fibre ${solved.tot.fib} g</div>
+        ${solved.prep?`<div class="sm mt8">${esc(solved.prep)}</div>`:''}
+        <div class="row mt8">
+          <button class="btn btn-sm" onclick="nextRecipe('${iso}','${slot.id}',${rec.id})">Un'altra idea</button>
+          ${(slot.id==='pranzo'||slot.id==='cena')?`<button class="btn btn-sm" onclick="startCheat('${iso}','${slot.id}')">Pasto sgarro</button>`:''}
+        </div>
+      </div>`;
+    }).join('');
+
+    // During sessions advice
+    const sweatAvg = calcSweatAvg();
+    const duringHtml = nut.sessionList.length ? `<div class="card">
+      <div class="card-hd"><h3>Durante le sedute</h3></div>
+      ${nut.sessionList.map(s => {
+        const cAdv = s.dur<=45 ? 'Non servono carboidrati durante.' : s.dur<=75 ? 'Piccole quantità o sciacqui di bocca.' : s.dur<=150 ? '30–60 g/h di carboidrati.' : 'Fino a 90 g/h (glucosio + fruttosio).';
+        let fAdv = 'Bevi a sete.';
+        if(s.dur > 60){
+          if(sweatAvg.byDisc[s.disc]){
+            const rateMl = Math.round(sweatAvg.byDisc[s.disc]*1000);
+            const maxLossMl = nut.w * 20; // 2% weight in ml
+            const needMlH = Math.max(300, Math.round(rateMl - maxLossMl/(s.dur/60)));
+            fAdv = `~${needMlH} ml/h (sudore medio ${fmt(sweatAvg.byDisc[s.disc],2)} L/h) per perdere < 2% del peso.`;
+          } else fAdv = '400–800 ml/h (registra il sudore per una stima personalizzata).';
+        }
+        return `<div style="padding:8px 0;border-bottom:1px solid var(--border)">
+          <div class="row-sb"><b>${s.lbl} · ${s.dur} min</b><span class="chip">${s.kcal} kcal</span></div>
+          <div class="sm mt8">• <b>Carboidrati:</b> ${cAdv}</div>
+          <div class="sm">• <b>Liquidi:</b> ${fAdv}</div>
+          ${s.dur>120?'<div class="sm">• <b>Sodio:</b> 300–600 mg/h.</div>':''}
+          ${s.dur>60?`<div class="sm">• <b>Prima:</b> ${Math.round(nut.w)}–${Math.round(nut.w*2)} g carboidrati 1–2 ore prima.</div>`:''}
+        </div>`;
+      }).join('')}
+    </div>` : '';
+
+    const cheatDiff = planTot.kcal - nut.targetKcal;
+
+    mainNutHtml = `
+      <div class="card">
+        <div class="card-hd"><h3>Fabbisogno del giorno</h3><span class="chip">${nut.loadLabel}</span></div>
+        <div class="g3 mb8">
+          <div class="kpi"><div class="kpi-v" style="color:var(--primary)">${fmt(nut.targetKcal)}</div><div class="kpi-l">Kcal totali</div></div>
+          <div class="kpi"><div class="kpi-v">${fmt(nut.bmr)}</div><div class="kpi-l">BMR (${nut.bmrSrc})</div></div>
+          <div class="kpi"><div class="kpi-v" style="color:var(--corsa)">+${fmt(nut.exKcal)}</div><div class="kpi-l">Allenamento</div></div>
+        </div>
+        ${nut.capDiff>0 ? `<div class="alert alert-w mb8"><b>Tetto calorie attivo (-${fmt(nut.capDiff)} kcal)</b>Alzalo gradualmente di 100–150 kcal a settimana per sostenere il carico.</div>` : ''}
+        ${nut.macroNote ? `<div class="alert mb8">${nut.macroNote}</div>` : ''}
+        <div class="macro-bar"><div class="mb-c" style="width:${cPct}%"></div><div class="mb-p" style="width:${pPct}%"></div><div class="mb-f" style="width:${fPct}%"></div></div>
+        <div class="row mb8" style="justify-content:space-between;font-size:12px">
+          <span><b style="color:var(--primary)">■</b> Carbo ${cPct}%</span>
+          <span><b style="color:var(--corsa)">■</b> Proteine ${pPct}%</span>
+          <span><b style="color:var(--z3)">■</b> Grassi ${fPct}%</span>
+        </div>
+        <table class="tbl">
+          <tr><th>Macro</th><th class="r">Grammi</th><th class="r">g/kg</th><th class="r">Rif.</th></tr>
+          <tr><td>Carboidrati</td><td class="r"><b>${nut.c} g</b></td><td class="r">${fmt(nut.c/nut.w,1)}</td><td class="r">${nut.carbRange[0]}–${nut.carbRange[1]} g/kg</td></tr>
+          <tr><td>Proteine</td><td class="r"><b>${nut.p} g</b></td><td class="r">${fmt(nut.p/nut.w,1)}</td><td class="r">${fmt(nut.protGkg,1)} g/kg</td></tr>
+          <tr><td>Grassi</td><td class="r"><b>${nut.f} g</b></td><td class="r">${fmt(nut.f/nut.w,1)}</td><td class="r">20–35%</td></tr>
+        </table>
+        ${nut.ea!=null ? `<div class="alert ${nut.ea<30?'alert-d':'alert-ok'} mt8">
+          <b>Disponibilità energetica: ${fmt(nut.ea,1)} kcal/kg massa magra</b>
+          ${nut.ea<30 ? 'Sotto 30 kcal/kg: rischio REDs, aumenta l\'apporto energetico.' : 'Livello adeguato.'}
+        </div>` : ''}
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><h3>Piano pasti</h3><span class="muted">${slots.length} pasti</span></div>
+        ${mealsHtml}
+        <table class="tbl mt8">
+          <tr><th>Totale giorno</th><th class="r">Piano</th><th class="r">Obiettivo</th></tr>
+          <tr><td>Calorie</td><td class="r"><b>${planTot.kcal}</b></td><td class="r">${nut.targetKcal} kcal</td></tr>
+          <tr><td>Carboidrati</td><td class="r">${planTot.c} g</td><td class="r">${nut.c} g</td></tr>
+          <tr><td>Proteine</td><td class="r">${planTot.p} g</td><td class="r">${nut.p} g</td></tr>
+          <tr><td>Grassi</td><td class="r">${planTot.f} g</td><td class="r">${nut.f} g</td></tr>
+          <tr><td>Fibre</td><td class="r">${planTot.fib} g</td><td class="r">25–35 g</td></tr>
+        </table>
+        ${hasCheat ? `<div class="alert ${Math.abs(cheatDiff)>350?'alert-w':'alert-ok'} mt8">Con il pasto sgarro sei <b>${cheatDiff>=0?'+':''}${cheatDiff} kcal</b> rispetto all'obiettivo.</div>` : ''}
+      </div>
+      ${duringHtml}`;
+  }
+
+  // Caffeine 7 days
+  const cafDays = [];
+  for(let i=6;i>=0;i--){
+    const d = addDays(iso, -i);
+    const v = STATE.caffeine[d] || 0;
+    cafDays.push({lbl:d.slice(8)+'/'+d.slice(5,7), val:v, col:v>5?'#c8364a':v===5?'#d9a62b':'#2e8b4a'});
+  }
+  const cafToday = STATE.caffeine[iso] || 0;
+  const cafAvg = cafDays.reduce((a,b)=>a+b.val,0)/7;
+  const lastSleep = STATE.sleep.find(s=>s.date===iso);
+
+  // Sweat
+  const swAvg = calcSweatAvg();
+  const swHtml = `<div class="card">
+    <div class="card-hd"><h3>Quanto sudi</h3></div>
+    <div class="g2 mb8">
+      <div class="fld"><label>Data</label><input type="date" id="swDate" value="${iso}"></div>
+      <div class="fld"><label>Disciplina</label><select id="swDisc"><option value="corsa">Corsa</option><option value="bici">Bici</option><option value="nuoto">Nuoto</option></select></div>
+      <div class="fld"><label>Peso prima (kg)</label><input type="number" step="0.05" id="swPre"></div>
+      <div class="fld"><label>Peso dopo (kg)</label><input type="number" step="0.05" id="swPost"></div>
+      <div class="fld"><label>Bevuto (ml)</label><input type="number" id="swDrunk" value="0"></div>
+      <div class="fld"><label>Durata (min)</label><input type="number" id="swDur"></div>
+      <div class="fld full"><label>Temperatura</label>
+        <select id="swTemp"><option value="freddo">Freddo (&lt; 12 °C)</option><option value="mite" selected>Mite (12–22 °C)</option><option value="caldo">Caldo (&gt; 22 °C)</option></select>
+      </div>
+    </div>
+    <button class="btn btn-p btn-sm btn-blk" onclick="addSweat()">Salva misura</button>
+    ${Object.keys(swAvg.byDisc).length ? `<table class="tbl mt12">
+      <tr><th>Medie (perdita ≥ 0,3 kg)</th><th class="r">Sudore (L/h)</th></tr>
+      ${Object.entries(swAvg.byDisc).map(([k,v])=>`<tr><td>${DISC_INFO[k]?.lbl||k}</td><td class="r"><b>${fmt(v,2)}</b></td></tr>`).join('')}
+      ${Object.entries(swAvg.byTemp).map(([k,v])=>`<tr><td>Clima ${k}</td><td class="r"><b>${fmt(v,2)}</b></td></tr>`).join('')}
+    </table>`:''}
+    ${STATE.sweat.length ? `<div class="mt8">${[...STATE.sweat].reverse().slice(0,8).map(s=>`
+      <div class="row-sb sm" style="padding:6px 0;border-bottom:1px solid var(--border)">
+        <span>${fmtDateShort(s.date)} · ${DISC_INFO[s.disc]?.lbl} (${s.temp}) · <b>${fmt(s.rate,2)} L/h</b> ${s.loss<0.3?'<span class="chip">fuori media</span>':''}</span>
+        <button class="btn btn-sm" data-del="" onclick="doubleTapDel(this,'sweat','${s.id}')">✕</button>
+      </div>`).join('')}</div>`:''}
+  </div>`;
+
+  return `${workoutsBox}${mainNutHtml}
+    <div class="card">
+      <div class="row-sb mb8">
+        <div><h3 class="ft" style="font-size:20px">Caffè (${dayLbl})</h3><div class="muted">${cafToday*80} mg caffeina · Media 7 gg: ${fmt(cafAvg,1)}</div></div>
+        <div class="row">
+          <button class="btn btn-sm" onclick="addCaf('${iso}',-1)">−</button>
+          <b class="ft" style="font-size:24px;min-width:26px;text-align:center">${cafToday}</b>
+          <button class="btn btn-sm btn-p" onclick="addCaf('${iso}',1)">+</button>
+        </div>
+      </div>
+      <div class="svg-box">${svgBarChart(cafDays,{target:5,targetLbl:'400 mg ≈ 5',minMax:6})}</div>
+      ${cafToday>=5 ? '<div class="alert alert-d mt8">Raggiunto o superato il limite giornaliero (400 mg ≈ 5 espressi).</div>':''}
+      ${lastSleep && lastSleep.hours<6 ? '<div class="alert alert-w mt8">Notte sotto le 6 ore: evita il caffè nel pomeriggio per non peggiorare il sonno stasera.</div>':''}
+    </div>
+    ${swHtml}`;
+}
+
+function updNutSess(path, val){
+  const cur = getNutDaySessions(nutSelectedDate);
+  delete cur.isManual;
+  if(path==='rest') cur.rest = !!val;
+  else if(path==='timing') cur.timing = val;
+  else {
+    const [k,sub] = path.split('.');
+    cur[k][sub] = (sub==='int') ? val : (parseNum(val)||0);
+  }
+  STATE.nutOverrides[nutSelectedDate] = cur;
+  saveState(); render();
+}
+
+function nextRecipe(iso, slotId, curId){
+  const nut = calcNutrition(iso);
+  const slot = buildMealSlots(nut).find(s=>s.id===slotId);
+  let list = getEligibleRecipes(slot);
+  if(slotId==='cena'){
+    const lunchId = STATE.mealChoices[iso]?.pranzo;
+    if(lunchId && list.length>1) list = list.filter(r=>r.id!==lunchId);
+  }
+  const idx = list.findIndex(r=>r.id===curId);
+  const next = list[(idx+1)%list.length];
+  STATE.mealChoices[iso] = STATE.mealChoices[iso] || {};
+  STATE.mealChoices[iso][slotId] = next.id;
+  saveState(); render();
+}
+
+function startCheat(iso, slotId){
+  STATE.cheatMeals[iso] = STATE.cheatMeals[iso] || {};
+  STATE.cheatMeals[iso][slotId] = {text:'',kcal:0,c:0,p:0,f:0,fib:0};
+  saveState(); render();
+}
+function cancelCheat(iso, slotId){
+  if(STATE.cheatMeals[iso]) delete STATE.cheatMeals[iso][slotId];
+  saveState(); render();
+}
+function saveCheatManual(iso, slotId){
+  STATE.cheatMeals[iso][slotId] = {
+    text: $(`#chTxt_${slotId}`).value.trim(),
+    kcal: parseNum($(`#chK_${slotId}`).value)||0,
+    c: parseNum($(`#chC_${slotId}`).value)||0,
+    p: parseNum($(`#chP_${slotId}`).value)||0,
+    f: parseNum($(`#chF_${slotId}`).value)||0,
+    fib: parseNum($(`#chFib_${slotId}`).value)||0
+  };
+  saveState(); render(); toast('Pasto sgarro aggiornato');
+}
+async function estimateCheatAI(iso, slotId){
+  const txt = $(`#chTxt_${slotId}`).value.trim();
+  if(!txt) return toast('Descrivi cosa hai mangiato');
+  try {
+    const res = await window.TRI_AI_CALL('cheat_meal', {text:txt});
+    STATE.cheatMeals[iso][slotId] = {text:txt, ...res};
+    saveState(); render(); toast('Valori stimati con IA');
+  } catch(e){ toast('IA non disponibile: usa i campi manuali'); }
+}
+
+function addCaf(iso, d){
+  STATE.caffeine[iso] = Math.max(0, (STATE.caffeine[iso]||0)+d);
+  saveState(); render();
+}
+
+function calcSweatAvg(){
+  const valid = STATE.sweat.filter(s=>s.loss >= 0.3);
+  const byDisc={}, byTemp={};
+  const group = (arr, key, out) => {
+    const m={};
+    arr.forEach(x=>{ (m[x[key]]=m[x[key]]||[]).push(x.rate); });
+    Object.entries(m).forEach(([k,v])=> out[k] = v.reduce((a,b)=>a+b,0)/v.length);
+  };
+  group(valid,'disc',byDisc); group(valid,'temp',byTemp);
+  return {byDisc, byTemp};
+}
+
+function addSweat(){
+  const pre=parseNum($('#swPre').value), post=parseNum($('#swPost').value), drunk=parseNum($('#swDrunk').value)||0, dur=parseNum($('#swDur').value);
+  if(!pre||!post||!dur) return toast('Compila pesi e durata');
+  const loss = pre - post;
+  const rate = Math.max(0, (loss + drunk/1000) / (dur/60));
+  STATE.sweat.push({id:uid(), date:$('#swDate').value, disc:$('#swDisc').value, pre, post, drunk, dur, temp:$('#swTemp').value, loss, rate});
+  saveState(); render(); toast(loss<0.3 ? 'Salvata (esclusa dalla media: < 0,3 kg)' : 'Misura sudore salvata');
+}
+
+function doubleTapDel(btn, arrKey, id){
+  if(btn.dataset.del !== '1'){
+    btn.dataset.del = '1'; btn.textContent = 'Conferma'; btn.classList.add('btn-d');
+    setTimeout(()=>{ if(btn){ btn.dataset.del=''; btn.textContent='✕'; btn.classList.remove('btn-d'); } }, 2500);
+    return;
+  }
+  STATE[arrKey] = STATE[arrKey].filter(x=>x.id!==id);
+  saveState(); render(); toast('Elemento eliminato');
+}
+
+/* ============================================================================
+   9. SECTION 4: GUIDA
+   ============================================================================ */
+function renderGuida(){
+  const zones = getKarvonenZones();
+  const maxHr = getMaxHR();
+  const zHtml = zones ? zones.map(z=>`
+    <div class="zone-row" style="border-left-color:${z.col}">
+      <b style="min-width:28px;color:${z.col}">${z.z}</b>
+      <div style="flex:1"><b>${z.lo}–${z.hi} bpm</b> <span class="muted">(${z.pct}) · ${z.desc}</span></div>
+    </div>`).join('')
+    : `<div class="alert alert-w">Inserisci età e FC a riposo nel Profilo per calcolare le tue zone Karvonen.</div>`;
+
+  const colBox = (title, sum, body) => `<div class="col-card">
+    <button class="col-btn" onclick="toggleCol(this)">
+      <div class="col-meta"><div class="col-t">${title}</div><div class="col-s">${sum}</div></div>
+      <span class="col-arr">▾</span>
+    </button><div class="col-body sm">${body}</div></div>`;
+
+  return `
+    <div class="card">
+      <div class="card-hd"><h3>Zone FC (metodo Karvonen)</h3>${maxHr?`<span class="chip">FC max ${maxHr}</span>`:''}</div>
+      ${zHtml}
+    </div>
+    <div class="card">
+      <div class="card-hd"><h3>Scala della fatica (RPE 1–10)</h3></div>
+      <table class="tbl">${Object.entries(RPE_DESC).map(([k,v])=>`<tr><td><b>${k}</b></td><td>${v}</td></tr>`).join('')}</table>
+    </div>
+    <div class="card">
+      <div class="card-hd"><h3>Come registrare le sedute</h3></div>
+      <div class="sm">Apri il giorno in <b>Settimana</b>, spunta <b>Seduta fatta</b>, inserisci durata, km, scarpe (corsa) e RPE. Per il <b>brick</b> compila separatamente bici e corsa. Ogni domenica pesati e scrivi il feedback settimanale.</div>
+    </div>
+    ${colBox('Allenamento e recupero','Regola 80/20, sonno ≥ 7 h, REDs',`
+      <div class="alert mb8"><b>Punto chiave:</b> circa l'80% del volume settimanale deve restare facile in Z1–Z2.</div>
+      <p>• <b>Sonno:</b> sotto le 7 ore aumenta il rischio di infortuni e cala l'adattamento; sotto le 6 ore riduci l'intensità.<br>
+      • <b>Segnali di carico eccessivo:</b> FC a riposo alta (+5/+7 bpm), gambe pesanti persistenti, qualità sonno 1–2/5.<br>
+      • <b>REDs:</b> disponibilità energetica sotto 30 kcal/kg di massa magra compromette recupero, ormoni e ossa.</p>`)}
+    ${colBox('Alimentazione e idratazione','Carboidrati, proteine, liquidi e sodio',`
+      <div class="alert mb8"><b>Punto chiave:</b> adegua i carboidrati al carico giornaliero e limita la perdita di liquidi sotto il 2% del peso.</div>
+      <table class="tbl mb8">
+        <tr><th>Carico giorno</th><th class="r">Carboidrati</th></tr>
+        <tr><td>Leggero (≤ 45 min)</td><td class="r">3–5 g/kg</td></tr>
+        <tr><td>Moderato (45–90 min)</td><td class="r">5–7 g/kg</td></tr>
+        <tr><td>Endurance (1,5–3 h)</td><td class="r">6–10 g/kg</td></tr>
+        <tr><td>Molto alto (&gt; 4,5 h)</td><td class="r">8–12 g/kg</td></tr>
+      </table>
+      <p>• <b>Durante:</b> &lt;45' nulla; 45–75' piccole dosi/sciacqui; fino a 2,5 h 30–60 g/h; oltre fino a 90 g/h (glucosio+fruttosio).<br>
+      • <b>Prima / Dopo:</b> 1–2 g/kg carbo 1–2 h prima (&gt;60') con pochi grassi e fibre; ≥0,25 g/kg proteine nel post.<br>
+      • <b>Proteine & Grassi:</b> 1,4–2,0 g/kg proteine; 20–35% grassi; 25–35 g fibre.<br>
+      • <b>Sodio e Iponatriemia:</b> 300–600 mg/h oltre le 2 h; non bere più di quanto sudi (evita di aumentare di peso durante la seduta).</p>`)}
+    ${colBox('Prevenzione infortuni','Forza 2–3×/sett., regola +10% sul lungo',`
+      <div class="alert mb8"><b>Punto chiave:</b> l'allenamento di forza riduce gli infortuni sportivi a meno di un terzo.</div>
+      <p>• <b>Forza:</b> 2–3 sedute/settimana migliorano economia di corsa e tenuta tendinea.<br>
+      • <b>Regola del +10%:</b> evita di superare di oltre il 10% la corsa più lunga degli ultimi 30 giorni e gli aumenti bruschi di volume.<br>
+      • <b>Infortuni tipici:</b> tendinopatia achillea, sindrome femoro-rotulea, bandelletta ileotibiale, periostite.<br>
+      • <b>Quando fermarsi:</b> dolore acuto, zoppia, dolore che peggiora durante la corsa o persiste oltre 24 ore.</p>`)}
+    ${colBox('Fonti scientifiche',`${SOURCES.length} riferimenti con link`,
+      SOURCES.map(([t,u])=>`<div style="padding:5px 0;border-bottom:1px solid var(--border)"><a href="${u}" target="_blank" rel="noopener">${esc(t)} ↗</a></div>`).join(''))}`;
+}
+
+/* ============================================================================
+   10. SECTION 5: SONNO
+   ============================================================================ */
+function renderSonno(){
+  const today = todayISO();
+  const sorted = [...STATE.sleep].sort((a,b)=>b.date.localeCompare(a.date));
+  const last7 = sorted.slice(0,7);
+  const avgH = last7.length ? last7.reduce((a,b)=>a+b.hours,0)/last7.length : null;
+  const qArr = last7.filter(s=>s.quality); const avgQ = qArr.length ? qArr.reduce((a,b)=>a+b.quality,0)/qArr.length : null;
+  const rArr = last7.filter(s=>s.rhr); const avgR = rArr.length ? rArr.reduce((a,b)=>a+b.rhr,0)/rArr.length : null;
+
+  const days14 = [];
+  for(let i=13;i>=0;i--){
+    const d = addDays(today,-i);
+    const s = STATE.sleep.find(x=>x.date===d);
+    const h = s ? s.hours : 0;
+    days14.push({lbl:d.slice(8), val:h, col:h>=7?'#2e8b4a':h>=6?'#d9a62b':'#c8364a'});
+  }
+  const sem = calcSemaforo(today);
+
+  return `
+    <div class="g3">
+      <div class="kpi"><div class="kpi-v" style="color:var(--primary)">${avgH!=null?fmt(avgH,1)+' h':'—'}</div><div class="kpi-l">Media 7 notti</div></div>
+      <div class="kpi"><div class="kpi-v">${avgQ!=null?fmt(avgQ,1)+'/5':'—'}</div><div class="kpi-l">Qualità</div></div>
+      <div class="kpi"><div class="kpi-v">${avgR!=null?Math.round(avgR):'—'}</div><div class="kpi-l">FC riposo</div></div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><h3>Ultime 14 notti</h3></div>
+      <div class="svg-box">${svgBarChart(days14,{target:7,targetLbl:'Obiettivo 7 h',minMax:9,dec:1})}</div>
+      <div class="alert ${sem.color==='green'?'alert-ok':sem.color==='red'?'alert-d':'alert-w'} mt8">
+        <b>Oggi:</b> ${esc(sem.msg)}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><h3>Registra sonno</h3></div>
+      <div class="g2">
+        <div class="fld"><label>Mattina del</label><input type="date" id="slDate" value="${today}"></div>
+        <div class="fld"><label>Ore dormite (orologio)</label><input type="number" step="0.1" id="slHours" placeholder="7.5"></div>
+        <div class="fld"><label>A letto alle</label><input type="time" id="slBed" value="23:00"></div>
+        <div class="fld"><label>Sveglia alle</label><input type="time" id="slWake" value="${STATE.profile.wake||'06:30'}"></div>
+        <div class="fld"><label>Risvegli</label><input type="number" id="slAwk" value="0"></div>
+        <div class="fld"><label>FC a riposo mattino</label><input type="number" id="slRhr" placeholder="${STATE.profile.rhr||55}"></div>
+        <div class="fld full"><label>Qualità (1–5)</label>
+          <select id="slQual"><option value="5">5 — Ottima</option><option value="4" selected>4 — Buona</option><option value="3">3 — Discreta</option><option value="2">2 — Scarsa</option><option value="1">1 — Pessima</option></select>
+        </div>
+        <div class="fld full"><label>Note</label><input type="text" id="slNotes" placeholder="Opzionale"></div>
+      </div>
+      <button class="btn btn-p btn-blk mt12" onclick="saveSleep()">Salva notte</button>
+    </div>
+    <div class="card">
+      <div class="card-hd"><h3>Ultime 14 notti registrate</h3></div>
+      ${sorted.slice(0,14).map(s=>`
+        <div class="row-sb" style="padding:7px 0;border-bottom:1px solid var(--border)">
+          <div>
+            <b>${fmtDateShort(s.date)}</b> · <span style="color:${s.hours>=7?'var(--ok)':s.hours>=6?'var(--warn)':'var(--danger)'};font-weight:700">${fmt(s.hours,1)} h</span>
+            <span class="muted">· Q ${s.quality}/5 ${s.rhr?`· FC ${s.rhr}`:''}</span>
+            ${s.notes?`<div class="muted">${esc(s.notes)}</div>`:''}
+          </div>
+          <button class="btn btn-sm" onclick="doubleTapDel(this,'sleep','${s.id}')">✕</button>
+        </div>`).join('') || '<div class="muted">Nessuna notte salvata.</div>'}
+    </div>`;
+}
+
+function saveSleep(){
+  const date = $('#slDate').value, hours = parseNum($('#slHours').value);
+  if(!date || hours==null) return toast('Inserisci data e ore dormite');
+  const rec = {
+    id:uid(), date, hours, bed:$('#slBed').value, wake:$('#slWake').value,
+    awakenings:parseNum($('#slAwk').value)||0, rhr:parseNum($('#slRhr').value),
+    quality:Number($('#slQual').value), notes:$('#slNotes').value.trim()
+  };
+  const idx = STATE.sleep.findIndex(s=>s.date===date);
+  if(idx>=0) STATE.sleep[idx] = rec; else STATE.sleep.push(rec);
+  saveState(); render(); toast('Sonno registrato');
+}
+
+/* ============================================================================
+   11. SECTION 6: GARE
+   ============================================================================ */
+function renderGare(){
+  const types = ['tutte','triathlon','sprint','olimpico','70.3','Ironman','mezze','maratone','altre'];
+  const today = todayISO();
+  const filtered = STATE.races.filter(r => {
+    if(raceFilterFrom && r.date && r.date < raceFilterFrom) return false;
+    if(raceFilterType !== 'tutte'){
+      const fmts = (r.formats||[]).map(f=>f.toLowerCase());
+      if(!fmts.includes(raceFilterType.toLowerCase())) return false;
+    }
+    return true;
+  }).sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'));
+
+  return `
+    <div class="card">
+      <div class="row-sb mb8">
+        <div class="fld" style="flex:1"><label>Dalla data</label><input type="date" value="${raceFilterFrom}" onchange="raceFilterFrom=this.value;render()"></div>
+        <button class="btn btn-sm" style="margin-top:16px" onclick="openAddRaceModal()">+ Aggiungi</button>
+        <button class="btn btn-sm" style="margin-top:16px" onclick="openImportRacesModal()">Importa JSON</button>
+      </div>
+      <div class="filter-row">
+        ${types.map(t=>`<button class="f-chip ${raceFilterType===t?'active':''}" onclick="raceFilterType='${t}';render()">${t}</button>`).join('')}
+      </div>
+    </div>
+    ${filtered.map(r => {
+      const isTarget = STATE.profile.targetRaceId === r.id;
+      const dd = r.date ? diffDays(today, r.date) : null;
+      const rem = dd==null ? '' : dd<0 ? 'Passata' : `Tra ${Math.floor(dd/7)} sett. ${dd%7} gg`;
+      return `<div class="card" style="${isTarget?'border-color:var(--primary);border-width:2px':''}">
+        <div class="row-sb">
+          <b class="ft" style="font-size:21px">${esc(r.name)}</b>
+          ${isTarget?'<span class="chip chip-p">Obiettivo</span>':`<span class="chip">${rem}</span>`}
+        </div>
+        <div class="muted">${esc(r.dateText||fmtDateFull(r.date))} · ${esc(r.place)}${r.region?` (${esc(r.region)})`:''}</div>
+        <div class="row mt8">
+          ${r.distances?`<span class="chip">${esc(r.distances)}</span>`:''}
+          <span class="chip ${r.confirmed?'chip-ok':'chip-w'}">${r.confirmed?'Data confermata':'Da confermare'}</span>
+          ${(r.formats||[]).map(f=>`<span class="chip">${esc(f)}</span>`).join('')}
+        </div>
+        ${r.notes?`<div class="sm mt8">${esc(r.notes)}</div>`:''}
+        <div class="row mt8">
+          <button class="btn btn-sm ${isTarget?'':'btn-p'}" onclick="setTargetRace('${r.id}')">${isTarget?'Rimuovi obiettivo':'Scegli come obiettivo'}</button>
+          ${r.link?`<a class="btn btn-sm" href="${esc(r.link)}" target="_blank" rel="noopener">Sito ↗</a>`:''}
+          <button class="btn btn-sm" onclick="doubleTapDel(this,'races','${r.id}')">✕</button>
+        </div>
+      </div>`;
+    }).join('') || '<div class="card muted">Nessuna gara trovata con questi filtri.</div>'}`;
+}
+
+function setTargetRace(id){
+  STATE.profile.targetRaceId = (STATE.profile.targetRaceId===id) ? null : id;
+  saveState(); render(); toast(STATE.profile.targetRaceId ? 'Gara obiettivo impostata' : 'Obiettivo rimosso');
+}
+
+function openAddRaceModal(){
+  openModal(`
+    <div class="modal-hd"><h2 style="font-size:22px">Nuova gara</h2><button class="menu-btn" onclick="closeModal()">✕</button></div>
+    <div class="g2">
+      <div class="fld full"><label>Nome gara</label><input id="rcName"></div>
+      <div class="fld"><label>Luogo</label><input id="rcPlace"></div>
+      <div class="fld"><label>Regione</label><input id="rcReg"></div>
+      <div class="fld"><label>Data</label><input type="date" id="rcDate"></div>
+      <div class="fld"><label>Distanze</label><input id="rcDist" placeholder="750m / 20km / 5km"></div>
+      <div class="fld full"><label>Formati (separati da virgola)</label><input id="rcFmt" placeholder="triathlon, sprint"></div>
+      <div class="fld full"><label>Link sito</label><input id="rcLink" placeholder="https://..."></div>
+      <div class="fld full"><label>Note</label><input id="rcNotes"></div>
+    </div>
+    <label class="chk mt8"><input type="checkbox" id="rcConf" checked> Data confermata</label>
+    <button class="btn btn-p btn-blk mt12" onclick="saveNewRace()">Salva gara</button>
+  `);
+}
+
+function saveNewRace(){
+  const name=$('#rcName').value.trim(), date=$('#rcDate').value;
+  if(!name||!date) return toast('Inserisci nome e data');
+  STATE.races.push({
+    id:uid(), name, place:$('#rcPlace').value.trim(), region:$('#rcReg').value.trim(), date,
+    dateText:fmtDateFull(date), distances:$('#rcDist').value.trim(),
+    formats:$('#rcFmt').value.split(',').map(x=>x.trim()).filter(Boolean),
+    link:$('#rcLink').value.trim(), notes:$('#rcNotes').value.trim(), confirmed:$('#rcConf').checked
+  });
+  saveState(); closeModal(); render(); toast('Gara aggiunta');
+}
+
+function openImportRacesModal(){
+  openModal(`
+    <div class="modal-hd"><h2 style="font-size:22px">Importa gare (JSON)</h2><button class="menu-btn" onclick="closeModal()">✕</button></div>
+    <div class="fld"><label>Incolla un array JSON di gare</label><textarea id="impRcTxt" style="min-height:160px;font-family:monospace;font-size:13px"></textarea></div>
+    <button class="btn btn-p btn-blk mt12" onclick="doImportRaces()">Importa</button>
+  `);
+}
+
+function doImportRaces(){
+  try {
+    const arr = JSON.parse($('#impRcTxt').value.trim());
+    if(!Array.isArray(arr)) throw new Error();
+    arr.forEach(r => STATE.races.push({id:r.id||uid(), ...r}));
+    saveState(); closeModal(); render(); toast(`Importate ${arr.length} gare`);
+  } catch(e){ toast('JSON non valido'); }
+}
+
+/* ============================================================================
+   12. SECTION 7: PROFILO (Dati, BIA, Grafici corpo, Ritmo, Scarpe)
+   ============================================================================ */
+function calcWeightRate(){
+  const today = todayISO();
+  const pts = [...STATE.weights].filter(w=>diffDays(w.date,today)<=35 && diffDays(w.date,today)>=0).sort((a,b)=>a.date.localeCompare(b.date));
+  if(pts.length < 3) return null;
+  const span = diffDays(pts[0].date, pts[pts.length-1].date);
+  if(span < 14) return null;
+  // Linear regression x = days from first point
+  const xs = pts.map(p=>diffDays(pts[0].date, p.date)), ys = pts.map(p=>p.kg);
+  const mx = xs.reduce((a,b)=>a+b,0)/xs.length, my = ys.reduce((a,b)=>a+b,0)/ys.length;
+  let num=0, den=0;
+  for(let i=0;i<xs.length;i++){ num+=(xs[i]-mx)*(ys[i]-my); den+=(xs[i]-mx)**2; }
+  if(den===0) return null;
+  const kgWeek = (num/den)*7;
+  const pctWeek = (kgWeek / my) * 100;
+  return {kgWeek, pctWeek, count:pts.length};
+}
+
+function getShoeAutoKm(shoeId){
+  let km = 0;
+  for(const [d, log] of Object.entries(STATE.logs)){
+    if(!log.done || log.shoeId !== shoeId) continue;
+    const plan = findDayPlan(d);
+    km += (plan?.type==='brick') ? (log.runKm||0) : (log.km||0);
+  }
+  return km;
+}
+
+function renderProfilo(){
+  const p = STATE.profile;
+  const zones = getKarvonenZones();
+  const z2 = zones ? `${zones[1].lo}–${zones[1].hi}` : '—';
+  const maxHr = getMaxHR();
+  const initial = (p.name||'T').trim().charAt(0).toUpperCase();
+  const today = todayISO();
+  const isSun = parseISO(today).getDay() === 0;
+  const sortedW = [...STATE.weights].sort((a,b)=>a.date.localeCompare(b.date));
+  const lastW = sortedW[sortedW.length-1];
+  const lastBia = getLatestBIA();
+  const rate = calcWeightRate();
+
+  // Body reminders
+  const rems = [];
+  if(isSun && (!lastW || lastW.date !== today)) rems.push({cls:'alert-p', txt:'Oggi è domenica: pesati stamattina!'});
+  else if(!lastW) rems.push({cls:'alert-w', txt:'Nessuna pesata registrata: inserisci il peso della domenica.'});
+  else {
+    const daysSinceW = diffDays(lastW.date, today);
+    if(daysSinceW > 8) rems.push({cls:'alert-w', txt:`Pesata mancante (ultima ${daysSinceW} giorni fa).`});
+    else rems.push({cls:'alert-ok', txt:`Prossima pesata: domenica ${fmtDateShort(addDays(getSunday(today),7))}.`});
+  }
+  if(lastBia){
+    const daysBia = diffDays(lastBia.date, today);
+    if(daysBia >= 60) rems.push({cls:'alert-w', txt:`BIA scaduta (${daysBia} giorni fa, consigliata ogni 2 mesi).`});
+    else rems.push({cls:'', txt:`Prossima BIA consigliata tra ${60-daysBia} giorni.`});
+  } else {
+    rems.push({cls:'', txt:'BIA consigliata ogni 2 mesi.'});
+  }
+  if(rate && rate.pctWeek < -1.0) rems.push({cls:'alert-d', txt:`Attenzione: stai calando di ${fmt(Math.abs(rate.pctWeek),2)}%/sett. (> 1%: rischio perdita muscolare).`});
+
+  // Rate interpretation
+  let rateBox = '';
+  if(rate){
+    const absPct = Math.abs(rate.pctWeek);
+    let msg, cls='alert-ok';
+    if(rate.pctWeek < -1.0){ msg='Oltre l\'1%/sett.: rischio di perdere massa muscolare.'; cls='alert-d'; }
+    else if(rate.pctWeek <= -0.5){ msg='Tra 0,5% e 1%/sett.: ritmo ideale.'; cls='alert-ok'; }
+    else if(rate.pctWeek < -0.1){ msg='Sotto lo 0,5%/sett.: ritmo lento e sostenibile.'; cls=''; }
+    else { msg = p.nutGoal==='lose' ? 'Peso fermo o in salita con obiettivo dimagrimento: rivedi il piano.' : 'Peso stabile o in aumento.'; cls = p.nutGoal==='lose'?'alert-w':''; }
+    rateBox = `<div class="alert ${cls} mt8"><b>Ritmo (ultimi 35 gg): ${rate.kgWeek>=0?'+':''}${fmt(rate.kgWeek,2)} kg/sett. (${rate.pctWeek>=0?'+':''}${fmt(rate.pctWeek,2)}%)</b>${msg}</div>`;
+  }
+
+  // Collapsible body charts
+  const sortedBias = [...STATE.bias].sort((a,b)=>a.date.localeCompare(b.date));
+  const mkChartCol = (title, pts, unit, extraSum='') => {
+    const last = pts[pts.length-1];
+    const sum = last ? `Ultimo: ${fmt(last.v,1)}${unit}${extraSum}` : 'Nessun dato';
+    return `<div class="col-card mt8">
+      <button class="col-btn" onclick="toggleCol(this)">
+        <div class="col-meta"><div class="col-t">${title}</div><div class="col-s">${sum}</div></div>
+        <span class="col-arr">▾</span>
+      </button>
+      <div class="col-body"><div class="svg-box">${svgLineChart(pts, unit)}</div></div>
+    </div>`;
+  };
+
+  const wPts = sortedW.map(x=>({v:x.kg, lbl:x.date.slice(8)+'/'+x.date.slice(5,7)}));
+  let wExtra = '';
+  if(wPts.length >= 2){
+    const dPrev = wPts[wPts.length-1].v - wPts[wPts.length-2].v;
+    const dInit = wPts[wPts.length-1].v - wPts[0].v;
+    wExtra = ` (${dPrev>=0?'+':''}${fmt(dPrev,1)} prec · ${dInit>=0?'+':''}${fmt(dInit,1)} inizio)`;
+  }
+  const biaPts = key => sortedBias.filter(b=>b[key]!=null).map(b=>({v:b[key], lbl:b.date.slice(8)+'/'+b.date.slice(5,7)}));
+
+  // Shoes
+  const shoesHtml = STATE.shoes.map(s => {
+    const autoKm = getShoeAutoKm(s.id);
+    const totKm = (s.initKm||0) + autoKm;
+    const exp = s.expectedKm || 600;
+    const pct = Math.min(100, Math.round((totKm/exp)*100));
+    const st = pct>=90 ? ['Da cambiare','chip-d'] : pct>=70 ? ['Da tenere d\'occhio','chip-w'] : ['In forma','chip-ok'];
+    return `<div style="padding:9px 0;border-bottom:1px solid var(--border);opacity:${s.retired?.55:1}">
+      <div class="row" style="align-items:flex-start">
+        ${s.photo?`<img class="shoe-img" src="${s.photo}" alt="">`:`<div class="shoe-img" style="display:grid;place-items:center;font-size:22px">👟</div>`}
+        <div style="flex:1;min-width:0">
+          <div class="row-sb"><b>${esc(s.model)}</b><span class="chip ${s.retired?'':st[1]}">${s.retired?'Ritirate':st[0]}</span></div>
+          <div class="muted">${fmt(totKm,1)} / ${exp} km (${pct}%) ${s.since?`· dal ${fmtDateShort(s.since)}`:''}</div>
+          <div class="pbar-t mt8"><div class="pbar-f" style="width:${pct}%;background:${pct>=90?'var(--danger)':pct>=70?'var(--warn)':'var(--ok)'}"></div></div>
+          <div class="row mt8">
+            <button class="btn btn-sm" onclick="toggleShoeRetire('${s.id}')">${s.retired?'Rimetti in uso':'Ritira'}</button>
+            <button class="btn btn-sm" onclick="doubleTapDel(this,'shoes','${s.id}')">Elimina</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('') || '<div class="muted">Nessuna scarpa registrata.</div>';
+
+  return `
+    <div class="card">
+      <div class="row mb8">
+        <div class="avatar">${initial}</div>
+        <div>
+          <h2 style="font-size:24px">${esc(p.name||'Atleta Triathlon')}</h2>
+          <div class="muted">${esc(p.disciplines)} · ${esc(p.goal)}</div>
+        </div>
+      </div>
+      <div class="g3">
+        <div class="kpi"><div class="kpi-v">${p.rhr||'—'}</div><div class="kpi-l">FC riposo</div></div>
+        <div class="kpi"><div class="kpi-v">${maxHr||'—'}</div><div class="kpi-l">FC max</div></div>
+        <div class="kpi"><div class="kpi-v" style="color:var(--z2)">${z2}</div><div class="kpi-l">Zona Z2</div></div>
+      </div>
+    </div>
+
+    <div class="col-card">
+      <button class="col-btn" onclick="toggleCol(this)">
+        <div class="col-meta"><div class="col-t">I tuoi dati</div><div class="col-s">${p.age?`${p.age} anni · `:''}${getEffectiveWeight()?`${fmt(getEffectiveWeight(),1)} kg · `:''}${p.height?`${p.height} cm`:'Compila il profilo'}</div></div>
+        <span class="col-arr">▾</span>
+      </button>
+      <div class="col-body">
+        <div class="g2">
+          <div class="fld"><label>Nome</label><input id="pName" value="${esc(p.name)}"></div>
+          <div class="fld"><label>Sesso</label><select id="pSex"><option value="M" ${p.sex==='M'?'selected':''}>Uomo</option><option value="F" ${p.sex==='F'?'selected':''}>Donna</option></select></div>
+          <div class="fld"><label>Età</label><input type="number" id="pAge" value="${p.age??''}"></div>
+          <div class="fld"><label>Peso (kg)</label><input type="number" step="0.1" id="pWeight" value="${p.weight??''}"></div>
+          <div class="fld"><label>Altezza (cm)</label><input type="number" id="pHeight" value="${p.height??''}"></div>
+          <div class="fld"><label>Sveglia</label><input type="time" id="pWake" value="${p.wake||'06:30'}"></div>
+          <div class="fld"><label>FC a riposo</label><input type="number" id="pRhr" value="${p.rhr??''}"></div>
+          <div class="fld"><label>FC massima (opz.)</label><input type="number" id="pMaxHr" value="${p.maxHr??''}" placeholder="${p.age?Math.round(208-0.7*p.age):''}"></div>
+          <div class="fld"><label>% Grasso (BIA)</label><input type="number" step="0.1" id="pBf" value="${p.bodyFat??''}"></div>
+          <div class="fld"><label>Massa magra kg (BIA)</label><input type="number" step="0.1" id="pLbm" value="${p.leanMass??''}"></div>
+          <div class="fld full"><label>Discipline</label><input id="pDisc" value="${esc(p.disciplines)}"></div>
+          <div class="fld full"><label>Obiettivo</label><input id="pGoal" value="${esc(p.goal)}"></div>
+          <div class="fld full"><label>Attività quotidiana</label>
+            <select id="pAct">
+              <option value="1.3" ${p.activity==1.3?'selected':''}>Seduto (1,3)</option>
+              <option value="1.5" ${p.activity==1.5?'selected':''}>In piedi buona parte (1,5)</option>
+              <option value="1.7" ${p.activity==1.7?'selected':''}>Lavoro fisico pesante (1,7)</option>
+            </select>
+          </div>
+          <div class="fld"><label>Obiettivo alimentare</label>
+            <select id="pNutGoal">
+              <option value="maintain" ${p.nutGoal==='maintain'?'selected':''}>Mantenere</option>
+              <option value="lose" ${p.nutGoal==='lose'?'selected':''}>Perdere peso (-10%)</option>
+              <option value="gain" ${p.nutGoal==='gain'?'selected':''}>Aumentare massa (+10%)</option>
+            </select>
+          </div>
+          <div class="fld"><label>Quanta fame</label>
+            <select id="pHunger">
+              <option value="poca" ${p.hunger==='poca'?'selected':''}>Poca fame</option>
+              <option value="normale" ${p.hunger==='normale'?'selected':''}>Normale</option>
+              <option value="tanta" ${p.hunger==='tanta'?'selected':''}>Tanta fame</option>
+            </select>
+          </div>
+          <div class="fld"><label>Voglia di cucinare</label>
+            <select id="pCook">
+              <option value="0" ${p.cook==0?'selected':''}>0 — Solo pronte</option>
+              <option value="1" ${p.cook==1?'selected':''}>1 — 10–15 min</option>
+              <option value="2" ${p.cook==2?'selected':''}>2 — Tutte</option>
+            </select>
+          </div>
+          <div class="fld"><label>Pasti al giorno</label>
+            <select id="pMeals">
+              <option value="0" ${!p.mealsCount?'selected':''}>Auto</option>
+              <option value="3" ${p.mealsCount==3?'selected':''}>3 pasti</option>
+              <option value="4" ${p.mealsCount==4?'selected':''}>4 pasti</option>
+              <option value="5" ${p.mealsCount==5?'selected':''}>5 pasti</option>
+            </select>
+          </div>
+          <div class="fld full"><label>Tetto calorie facoltativo (kcal)</label><input type="number" id="pCap" value="${p.kcalCap??''}" placeholder="Lascia vuoto se non usato"></div>
+        </div>
+        <div class="mt12"><label class="muted" style="font-weight:600;display:block;margin-bottom:6px">Allergie e intolleranze</label>
+          <div class="alg-grid">${ALLERGENS.map(a=>`<label class="alg-it"><input type="checkbox" class="pAlg" value="${esc(a)}" ${(p.allergens||[]).includes(a)?'checked':''}> ${esc(a)}</label>`).join('')}</div>
+        </div>
+        <button class="btn btn-p btn-blk mt12" onclick="saveProfile()">Salva profilo</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd"><h3>Andamento del corpo</h3></div>
+      ${rems.map(r=>`<div class="alert ${r.cls} mb8">${r.txt}</div>`).join('')}
+
+      <div class="card" style="background:var(--surface-alt);margin-bottom:8px">
+        <b class="ft" style="font-size:18px;display:block;margin-bottom:6px">Peso della domenica</b>
+        <div class="row">
+          <div class="fld" style="flex:1"><label>Data</label><input type="date" id="wDate" value="${getSunday(today)}"></div>
+          <div class="fld" style="flex:1"><label>Peso (kg)</label><input type="number" step="0.1" id="wKg" value="${lastW?lastW.kg:''}"></div>
+          <button class="btn btn-p btn-sm" style="margin-top:16px" onclick="saveWeight()">Salva</button>
+        </div>
+        ${rateBox}
+      </div>
+
+      <div class="col-card">
+        <button class="col-btn" onclick="toggleCol(this)">
+          <div class="col-meta"><div class="col-t">Carica il referto della BIA</div><div class="col-s">${lastBia?`Ultima: ${fmtDateFull(lastBia.date)}`:'Foto/PDF o inserimento manuale'}</div></div>
+          <span class="col-arr">▾</span>
+        </button>
+        <div class="col-body">
+          ${hasAI() ? `<div class="fld mb8"><label>Foto o PDF del referto (lettura IA)</label><input type="file" accept="image/*,.pdf" onchange="readBiaAI(this)"></div>`
+                    : `<div class="muted mb8">Inserimento manuale del referto BIA:</div>`}
+          <div class="g2">
+            <div class="fld"><label>Data</label><input type="date" id="bDate" value="${today}"></div>
+            <div class="fld"><label>Peso (kg)</label><input type="number" step="0.1" id="bWeight" oninput="checkBiaCoh()"></div>
+            <div class="fld"><label>% Grasso</label><input type="number" step="0.1" id="bFatPct" oninput="checkBiaCoh()"></div>
+            <div class="fld"><label>Massa magra (kg)</label><input type="number" step="0.1" id="bLbm" oninput="checkBiaCoh()"></div>
+            <div class="fld"><label>Massa musc. scheletrica</label><input type="number" step="0.1" id="bSmm" oninput="checkBiaCoh()"></div>
+            <div class="fld"><label>Acqua totale (kg/L)</label><input type="number" step="0.1" id="bWater"></div>
+            <div class="fld"><label>Grasso viscerale</label><input type="number" step="0.5" id="bVisc"></div>
+            <div class="fld"><label>Massa grassa (kg)</label><input type="number" step="0.1" id="bFatKg"></div>
+            <div class="fld"><label>Proteine (kg)</label><input type="number" step="0.1" id="bProt"></div>
+            <div class="fld"><label>Minerali (kg)</label><input type="number" step="0.01" id="bMin"></div>
+            <div class="fld"><label>Metabolismo basale</label><input type="number" id="bBmr"></div>
+            <div class="fld"><label>IMC</label><input type="number" step="0.1" id="bBmi"></div>
+            <div class="fld full"><label>Punteggio</label><input type="number" id="bScore"></div>
+          </div>
+          <div id="biaCohWarn" class="mt8"></div>
+          <button class="btn btn-p btn-blk mt8" onclick="saveBia()">Salva BIA</button>
+        </div>
+      </div>
+
+      ${mkChartCol('Peso', wPts, ' kg', wExtra)}
+      ${mkChartCol('Massa grassa %', biaPts('fatPct'), '%')}
+      ${mkChartCol('Massa magra', biaPts('leanMass'), ' kg')}
+      ${mkChartCol('Massa muscolare scheletrica', biaPts('smm'), ' kg')}
+      ${mkChartCol('Acqua corporea', biaPts('water'), ' kg')}
+      ${mkChartCol('Grasso viscerale', biaPts('visceral'), '')}
+
+      ${lastBia ? `<div class="mt12"><b class="ft" style="font-size:18px">Ultima BIA (${fmtDateFull(lastBia.date)})</b>
+        <table class="tbl mt8">
+          ${[['Peso',lastBia.weight,' kg'],['% Grasso',lastBia.fatPct,'%'],['Massa magra',lastBia.leanMass,' kg'],
+             ['Massa musc. scheletrica',lastBia.smm,' kg'],['Acqua totale',lastBia.water,' kg'],['Grasso viscerale',lastBia.visceral,''],
+             ['Massa grassa',lastBia.fatKg,' kg'],['Proteine',lastBia.protein,' kg'],['Minerali',lastBia.minerals,' kg'],
+             ['Metabolismo basale',lastBia.bmr,' kcal'],['IMC',lastBia.bmi,''],['Punteggio',lastBia.score,'']]
+             .filter(r=>r[1]!=null).map(r=>`<tr><td>${r[0]}</td><td class="r"><b>${fmt(r[1],1)}${r[2]}</b></td></tr>`).join('')}
+        </table></div>`:''}
+    </div>
+
+    <div class="card">
+      <div class="card-hd"><h3>Scarpe da corsa</h3><button class="btn btn-sm btn-p" onclick="openAddShoeModal()">+ Aggiungi</button></div>
+      ${shoesHtml}
+    </div>
+
+    <div class="card">
+      <div class="card-hd"><h3>Backup dati</h3></div>
+      <div class="row">
+        <button class="btn" style="flex:1" onclick="exportAllData()">Esporta dati (JSON)</button>
+        <button class="btn" style="flex:1" onclick="triggerImportAll()">Importa dati (JSON)</button>
+      </div>
+    </div>`;
+}
+
+function saveProfile(){
+  const p = STATE.profile;
+  p.name = $('#pName').value.trim();
+  p.sex = $('#pSex').value;
+  p.age = parseNum($('#pAge').value);
+  p.weight = parseNum($('#pWeight').value);
+  p.height = parseNum($('#pHeight').value);
+  p.wake = $('#pWake').value;
+  p.rhr = parseNum($('#pRhr').value);
+  p.maxHr = parseNum($('#pMaxHr').value);
+  p.bodyFat = parseNum($('#pBf').value);
+  p.leanMass = parseNum($('#pLbm').value);
+  p.disciplines = $('#pDisc').value.trim();
+  p.goal = $('#pGoal').value.trim();
+  p.activity = parseNum($('#pAct').value)||1.3;
+  p.nutGoal = $('#pNutGoal').value;
+  p.hunger = $('#pHunger').value;
+  p.cook = Number($('#pCook').value);
+  p.mealsCount = Number($('#pMeals').value);
+  p.kcalCap = parseNum($('#pCap').value);
+  p.allergens = [...document.querySelectorAll('.pAlg:checked')].map(el=>el.value);
+  saveState(); render(); toast('Profilo salvato');
+}
+
+function saveWeight(){
+  const date=$('#wDate').value, kg=parseNum($('#wKg').value);
+  if(!date||!kg) return toast('Inserisci data e peso');
+  const idx = STATE.weights.findIndex(w=>w.date===date);
+  if(idx>=0) STATE.weights[idx].kg = kg; else STATE.weights.push({id:uid(), date, kg});
+  STATE.profile.weight = kg;
+  saveState(); render(); toast('Pesata salvata');
+}
+
+function checkBiaCoh(){
+  const w=parseNum($('#bWeight').value), fp=parseNum($('#bFatPct').value), lbm=parseNum($('#bLbm').value), smm=parseNum($('#bSmm').value);
+  const warns=[];
+  if(w && fp!=null && lbm){
+    const expLbm = w*(1-fp/100);
+    if(Math.abs(lbm-expLbm) > 2.5) warns.push(`Massa magra attesa ≈ ${fmt(expLbm,1)} kg (controlla i dati).`);
+  }
+  if(lbm && smm && smm >= lbm) warns.push('La massa muscolare scheletrica deve essere inferiore alla massa magra.');
+  $('#biaCohWarn').innerHTML = warns.length ? `<div class="alert alert-w">${warns.join('<br>')}</div>` : '';
+}
+
+async function readBiaAI(input){
+  const f = input.files[0]; if(!f) return;
+  try {
+    const res = await window.TRI_AI_CALL('bia_parse', {file:f});
+    const map={weight:'bWeight',fatPct:'bFatPct',leanMass:'bLbm',smm:'bSmm',water:'bWater',visceral:'bVisc',fatKg:'bFatKg',protein:'bProt',minerals:'bMin',bmr:'bBmr',bmi:'bBmi',score:'bScore'};
+    Object.entries(map).forEach(([k,id])=>{ if(res[k]!=null) $('#'+id).value = res[k]; });
+    checkBiaCoh(); toast('Referto letto con IA: verifica i valori');
+  } catch(e){ toast('Lettura IA non disponibile: compila a mano'); }
+}
+
+function saveBia(){
+  const date = $('#bDate').value; if(!date) return toast('Inserisci la data');
+  const rec = {
+    id:uid(), date, weight:parseNum($('#bWeight').value), fatPct:parseNum($('#bFatPct').value),
+    leanMass:parseNum($('#bLbm').value), smm:parseNum($('#bSmm').value), water:parseNum($('#bWater').value),
+    visceral:parseNum($('#bVisc').value), fatKg:parseNum($('#bFatKg').value), protein:parseNum($('#bProt').value),
+    minerals:parseNum($('#bMin').value), bmr:parseNum($('#bBmr').value), bmi:parseNum($('#bBmi').value), score:parseNum($('#bScore').value)
+  };
+  STATE.bias.push(rec);
+  if(rec.weight){
+    STATE.profile.weight = rec.weight;
+    const wi = STATE.weights.findIndex(w=>w.date===date);
+    if(wi>=0) STATE.weights[wi].kg = rec.weight; else STATE.weights.push({id:uid(), date, kg:rec.weight});
+  }
+  if(rec.fatPct!=null) STATE.profile.bodyFat = rec.fatPct;
+  if(rec.leanMass!=null) STATE.profile.leanMass = rec.leanMass;
+  saveState(); render(); toast('Referto BIA salvato');
+}
+
+function openAddShoeModal(){
+  window._tmpShoePhoto = '';
+  openModal(`
+    <div class="modal-hd"><h2 style="font-size:22px">Nuove scarpe</h2><button class="menu-btn" onclick="closeModal()">✕</button></div>
+    <div class="g2">
+      <div class="fld full"><label>Modello</label><input id="shModel" placeholder="Es. Asics Novablast 4"></div>
+      <div class="fld"><label>Km già fatti</label><input type="number" id="shInit" value="0"></div>
+      <div class="fld"><label>Km attesi</label><input type="number" id="shExp" value="600"></div>
+      <div class="fld"><label>In uso dal</label><input type="date" id="shSince" value="${todayISO()}"></div>
+      <div class="fld"><label>Foto (opz.)</label><input type="file" accept="image/*" onchange="handleShoePhoto(this)"></div>
+    </div>
+    ${hasAI()?`<button class="btn btn-sm mt8" onclick="estimateShoeAI()">Stima durata con IA</button>`:''}
+    <button class="btn btn-p btn-blk mt12" onclick="saveNewShoe()">Salva scarpe</button>
+  `);
+}
+
+function handleShoePhoto(input){
+  const f = input.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas'), max=180;
+      const sc = Math.min(1, max/Math.max(img.width, img.height));
+      c.width = img.width*sc; c.height = img.height*sc;
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      window._tmpShoePhoto = c.toDataURL('image/jpeg', 0.72);
+    };
+    img.src = r.result;
+  };
+  r.readAsDataURL(f);
+}
+
+async function estimateShoeAI(){
+  const m = $('#shModel').value.trim(); if(!m) return toast('Inserisci il modello');
+  try {
+    const res = await window.TRI_AI_CALL('shoe_life', {model:m});
+    if(res.expectedKm) $('#shExp').value = res.expectedKm;
+    toast('Durata stimata con IA');
+  } catch(e){ toast('Inserisci i km attesi a mano'); }
+}
+
+function saveNewShoe(){
+  const model = $('#shModel').value.trim(); if(!model) return toast('Inserisci il modello');
+  STATE.shoes.push({
+    id:uid(), model, initKm:parseNum($('#shInit').value)||0, expectedKm:parseNum($('#shExp').value)||600,
+    since:$('#shSince').value, photo:window._tmpShoePhoto||'', retired:false
+  });
+  saveState(); closeModal(); render(); toast('Scarpe aggiunte');
+}
+
+function toggleShoeRetire(id){
+  const s = STATE.shoes.find(x=>x.id===id);
+  if(s){ s.retired = !s.retired; saveState(); render(); }
+}
+
+// Start App
+initNav();
+</script>
+</body>
+</html>
